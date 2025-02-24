@@ -4,10 +4,13 @@ fn main() {
     const IMAGE_HEIGHT: i32 = 256;
 
     // Render
-    print!("P3\n{} {}\n255\n", IMAGE_WIDTH, IMAGE_HEIGHT);
+    println!("P3");
+    println!("{} {}", IMAGE_WIDTH, IMAGE_HEIGHT);
+    println!("255");
 
     for j in (0..IMAGE_HEIGHT).rev() {
         for i in 0..IMAGE_WIDTH {
+            eprint!("\rScanlines remaining: {}", j);
             let r = i as f64 / (IMAGE_WIDTH - 1) as f64;
             let g = j as f64 / (IMAGE_WIDTH - 1) as f64;
             let b = 0.25;
@@ -16,8 +19,10 @@ fn main() {
             let ig = (255.999 * g) as i32;
             let ib = (255.999 * b) as i32;
 
-            print!("{} {} {}\n", ir, ig, ib);
+            println!("{} {} {}", ir, ig, ib);
         }
     }
+
+    eprintln!("\nDone.")
 
 }
