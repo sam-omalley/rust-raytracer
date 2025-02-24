@@ -1,4 +1,5 @@
 mod colour;
+mod ray;
 mod vec3;
 
 use std::io;
