@@ -2,9 +2,9 @@ use std::io::Write;
 
 use crate::vec3::Vec3;
 
-pub type Color = Vec3;
+pub type Colour = Vec3;
 
-pub fn write_colour(out: &mut impl Write, pixel_color: Color) {
+pub fn write_colour(out: &mut impl Write, pixel_color: Colour) {
     // Write the translated [0, 255] value of each colour component.
     let r = (255.999 * pixel_color.x()) as i32;
     let g = (255.999 * pixel_color.y()) as i32;
