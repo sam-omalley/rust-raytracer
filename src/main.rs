@@ -8,18 +8,25 @@ use colour::Color;
 use ray::Ray;
 use vec3::{Point3, Vec3};
 
-fn hit_sphere(centre: Point3, radius: f64, r: &Ray) -> bool {
+fn hit_sphere(centre: Point3, radius: f64, r: &Ray) -> f64 {
     let oc = r.origin() - centre;
     let a = vec3::dot(r.direction(), r.direction());
     let b = 2.0 * vec3::dot(oc, r.direction());
     let c = vec3::dot(oc, oc) - radius * radius;
     let discriminant = b * b - 4.0 * a * c;
-    discriminant >= 0.0
+    if discriminant < 0.0 {
+        -1.0
+    } else {
+        (-b - f64::sqrt(discriminant)) / (2.0 * a)
+    }
 }
 
 fn ray_colour(r: &Ray) -> Color {
-    if hit_sphere(Point3::new(0.0, 0.0, -1.0), 0.5, r) {
-        return Color::new(1.0, 0.0, 0.0);
+    let t = hit_sphere(Point3::new(0.0, 0.0, -1.0), 0.5, r);
+
+    if t > 0.0 {
+        let n = vec3::unit_vector(r.at(t) - Vec3::new(0.0, 0.0, -1.0));
+        return 0.5 * Color::new(n.x() + 1.0, n.y() + 1.0, n.z() + 1.0);
     }
     let unit_direction = vec3::unit_vector(r.direction());
     let t = 0.5 * (unit_direction.y() + 1.0);
@@ -40,7 +47,8 @@ fn main() {
     let origin = Point3::new(0.0, 0.0, 0.0);
     let horizontal = Vec3::new(viewport_width, 0.0, 0.0);
     let vertical = Vec3::new(0.0, viewport_height, 0.0);
-    let lower_left_corner = origin - (horizontal / 2.0) - (vertical / 2.0) - Vec3::new(0.0, 0.0, focal_length);
+    let lower_left_corner =
+        origin - (horizontal / 2.0) - (vertical / 2.0) - Vec3::new(0.0, 0.0, focal_length);
 
     // Render
     println!("P3");
@@ -54,7 +62,7 @@ fn main() {
             let v = j as f64 / (IMAGE_HEIGHT - 1) as f64;
             let r = Ray::new(
                 origin,
-                lower_left_corner + u * horizontal + v * vertical - origin
+                lower_left_corner + u * horizontal + v * vertical - origin,
             );
             let pixel_colour = ray_colour(&r);
             colour::write_colour(&mut io::stdout(), pixel_colour);
