@@ -49,6 +49,12 @@ impl Vec3 {
     pub fn length_squared(&self) -> f64 {
         (self.x * self.x) + (self.y * self.y) + (self.z * self.z)
     }
+
+    pub fn near_zero(&self) -> bool {
+        const EPS: f64 = 1.0e-8;
+        // Return true if the vector is close to zero in all dimensions.
+        self.x().abs() < EPS && self.y().abs() < EPS && self.z().abs() < EPS
+    }
 }
 
 // Type alias
@@ -171,7 +177,10 @@ pub fn random_in_unit_sphere() -> Vec3 {
     }
 }
 
-
 pub fn random_unit_vector() -> Vec3 {
     unit_vector(random_in_unit_sphere())
+}
+
+pub fn reflect(v: Vec3, n: Vec3) -> Vec3 {
+    v - 2.0 * dot(v, n) * n
 }
