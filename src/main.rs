@@ -22,7 +22,7 @@ fn ray_colour(r: &Ray, world: &dyn Hittable, depth: i32) -> Colour {
         return Colour::new(0.0, 0.0, 0.0);
     }
     let mut rec = HitRecord::new();
-    if world.hit(r, 0.0, common::INFINITY, &mut rec) {
+    if world.hit(r, 0.001, common::INFINITY, &mut rec) {
         let direction = rec.normal + vec3::random_in_unit_sphere();
         return 0.5 * ray_colour(&Ray::new(rec.p, direction), world, depth - 1);
     }
