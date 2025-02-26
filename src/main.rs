@@ -17,10 +17,14 @@ use ray::Ray;
 use sphere::Sphere;
 use vec3::Point3;
 
-fn ray_colour(r: &Ray, world: &dyn Hittable) -> Colour {
+fn ray_colour(r: &Ray, world: &dyn Hittable, depth: i32) -> Colour {
+    if depth <= 0 {
+        return Colour::new(0.0, 0.0, 0.0);
+    }
     let mut rec = HitRecord::new();
     if world.hit(r, 0.0, common::INFINITY, &mut rec) {
-        return 0.5 * (rec.normal + Colour::new(1.0, 1.0, 1.0));
+        let direction = rec.normal + vec3::random_in_unit_sphere();
+        return 0.5 * ray_colour(&Ray::new(rec.p, direction), world, depth - 1);
     }
 
     let unit_direction = vec3::unit_vector(r.direction());
@@ -34,6 +38,7 @@ fn main() {
     const IMAGE_WIDTH: i32 = 400;
     const IMAGE_HEIGHT: i32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as i32;
     const SAMPLES_PER_PIXEL: i32 = 100;
+    const MAX_DEPTH: i32 = 50;
 
     // World
     let mut world = HittableList::new();
@@ -56,7 +61,7 @@ fn main() {
                 let u = (i as f64 + common::random_double()) / (IMAGE_WIDTH - 1) as f64;
                 let v = (j as f64 + common::random_double()) / (IMAGE_HEIGHT - 1) as f64;
                 let r = cam.get_ray(u, v);
-                pixel_colour += ray_colour(&r, &world);
+                pixel_colour += ray_colour(&r, &world, MAX_DEPTH);
             }
             colour::write_colour(&mut io::stdout(), pixel_colour, SAMPLES_PER_PIXEL);
         }
