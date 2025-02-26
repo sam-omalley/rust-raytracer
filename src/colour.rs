@@ -10,11 +10,11 @@ pub fn write_colour(out: &mut impl Write, pixel_colour: Colour, samples_per_pixe
     let mut g = pixel_colour.y();
     let mut b = pixel_colour.z();
 
-    // Divide the colour by the number of samples
+    // Divide the colour by the number of samples and gamma-correct for gamma=2.0
     let scale = 1.0 / samples_per_pixel as f64;
-    r *= scale;
-    g *= scale;
-    b *= scale;
+    r = f64::sqrt(scale * r);
+    g = f64::sqrt(scale * g);
+    b = f64::sqrt(scale * b);
 
     // Write the translated [0, 255] value of each colour component.
     writeln!(
