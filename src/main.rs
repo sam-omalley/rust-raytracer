@@ -3,6 +3,7 @@ mod colour;
 mod common;
 mod hittable;
 mod hittable_list;
+mod interval;
 mod material;
 mod ray;
 mod sphere;
@@ -12,6 +13,7 @@ use camera::Camera;
 use colour::Colour;
 use hittable::Hittable;
 use hittable_list::HittableList;
+use interval::Interval;
 use material::Material;
 use ray::Ray;
 use sphere::Sphere;
@@ -25,7 +27,7 @@ fn ray_colour(r: &Ray, world: &dyn Hittable, depth: i32) -> Colour {
         return Colour::new(0.0, 0.0, 0.0);
     }
 
-    match world.hit(r, 0.001, common::INFINITY) {
+    match world.hit(r, Interval::new(0.001, common::INFINITY)) {
         Some((hit_record, material)) => match material.scatter(r, &hit_record) {
             Some((attenuation, scattered)) => {
                 attenuation * ray_colour(&scattered, world, depth - 1)
@@ -88,6 +90,14 @@ fn random_scene() -> HittableList {
         1.0,
         material,
     )));
+    let material = Material::Dialectric {
+        refraction: 1.0 / 1.5,
+    };
+    world.add(Box::new(Sphere::new(
+        Point3::new(0.0, 1.0, 0.0),
+        0.9,
+        material,
+    )));
 
     let material = Material::Lambertian {
         albedo: Colour::new(0.4, 0.2, 0.1),
@@ -116,7 +126,7 @@ fn main() {
     const ASPECT_RATIO: f64 = 3.0 / 2.0;
     const IMAGE_WIDTH: i32 = 1200;
     const IMAGE_HEIGHT: i32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as i32;
-    const SAMPLES_PER_PIXEL: i32 = 500;
+    const SAMPLES_PER_PIXEL: i32 = 5; // 500; // 500;
     const MAX_DEPTH: i32 = 50;
 
     // World
@@ -141,37 +151,38 @@ fn main() {
 
     let progress = Mutex::new(0);
 
-    let pixels = (0..IMAGE_HEIGHT)
+    let num_pixels = IMAGE_WIDTH * IMAGE_HEIGHT;
+
+    let pixels: Vec<(u8, u8, u8)> = (0..num_pixels)
         .into_par_iter()
-        .rev()
-        .map(|j| {
+        .map(|index| {
             {
                 let mut count = progress.lock().unwrap();
-                eprint!("\rScanlines remaining: {}", (IMAGE_HEIGHT - *count));
+                if *count % 1000 == 0 {
+                    eprint!("\rScanlines remaining: {}", (num_pixels - *count));
+                }
                 *count += 1;
             }
 
-            (0..IMAGE_WIDTH)
-                .into_par_iter()
-                .map(|i| {
-                    let mut pixel_colour = Colour::new(0.0, 0.0, 0.0);
-                    for _ in 0..SAMPLES_PER_PIXEL {
-                        let u = (i as f64 + common::random_double()) / (IMAGE_WIDTH - 1) as f64;
-                        let v = (j as f64 + common::random_double()) / (IMAGE_HEIGHT - 1) as f64;
-                        let r = cam.get_ray(u, v);
-                        pixel_colour += ray_colour(&r, &world, MAX_DEPTH);
-                    }
-                    colour::write_colour(pixel_colour, SAMPLES_PER_PIXEL) + "\n"
-                })
-                .collect::<Vec<String>>()
-                .join("")
+            let i = index % IMAGE_WIDTH;
+            let j = IMAGE_HEIGHT - (index / IMAGE_WIDTH) - 1;
+
+            let mut pixel_colour = Colour::new(0.0, 0.0, 0.0);
+            for _ in 0..SAMPLES_PER_PIXEL {
+                let u = (i as f64 + common::random_double()) / (IMAGE_WIDTH - 1) as f64;
+                let v = (j as f64 + common::random_double()) / (IMAGE_HEIGHT - 1) as f64;
+                let r = cam.get_ray(u, v);
+                pixel_colour += ray_colour(&r, &world, MAX_DEPTH);
+            }
+            colour::get_output_colour(pixel_colour, SAMPLES_PER_PIXEL)
         })
-        .collect::<Vec<String>>()
-        .join("");
+        .collect::<Vec<(u8, u8, u8)>>();
 
     // Render
     println!("P3");
     println!("{} {}", IMAGE_WIDTH, IMAGE_HEIGHT);
     println!("255");
-    println!("{}", pixels);
+    for (r, g, b) in pixels {
+        println!("{} {} {}", r, g, b);
+    }
 }
