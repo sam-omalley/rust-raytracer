@@ -1,3 +1,4 @@
+use crate::interval::Interval;
 use crate::material::Material;
 use crate::ray::Ray;
 use crate::vec3::{self, Point3, Vec3};
@@ -25,6 +26,6 @@ impl HitRecord {
     }
 }
 
-pub trait Hittable: Sync {
-    fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> Option<(HitRecord, &Material)>;
+pub trait Hittable: Send + Sync {
+    fn hit(&self, r: &Ray, ray_t: Interval) -> Option<(HitRecord, &Material)>;
 }
