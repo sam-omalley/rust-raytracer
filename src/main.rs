@@ -47,7 +47,7 @@ fn ray_colour(r: &Ray, world: &dyn Hittable, depth: i32) -> Colour {
 fn main() {
     // Image
     const ASPECT_RATIO: f64 = 16.0 / 9.0;
-    const IMAGE_WIDTH: i32 = 400;
+    const IMAGE_WIDTH: i32 = 800;
     const IMAGE_HEIGHT: i32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as i32;
     const SAMPLES_PER_PIXEL: i32 = 100;
     const MAX_DEPTH: i32 = 50;
@@ -57,8 +57,8 @@ fn main() {
 
     let material_ground = Rc::new(Lambertian::new(Colour::new(0.8, 0.8, 0.0)));
     let material_center = Rc::new(Lambertian::new(Colour::new(0.7, 0.3, 0.3)));
-    let material_left = Rc::new(Metal::new(Colour::new(0.8, 0.8, 0.8)));
-    let material_right = Rc::new(Metal::new(Colour::new(0.8, 0.6, 0.2)));
+    let material_left = Rc::new(Metal::new(Colour::new(0.8, 0.8, 0.8), 0.3));
+    let material_right = Rc::new(Metal::new(Colour::new(0.8, 0.6, 0.2), 1.0));
 
     world.add(Box::new(Sphere::new(
         Point3::new(0.0, -100.5, -1.0),
