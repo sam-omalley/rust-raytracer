@@ -1,4 +1,5 @@
 use crate::hittable::{HitRecord, Hittable};
+use crate::material::Material;
 use crate::ray::Ray;
 
 #[derive(Default)]
@@ -17,19 +18,16 @@ impl HittableList {
 }
 
 impl Hittable for HittableList {
-    fn hit(&self, ray: &Ray, t_min: f64, t_max: f64, rec: &mut HitRecord) -> bool {
-        let mut temp_rec = HitRecord::new();
-        let mut hit_anything = false;
+    fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> Option<(HitRecord, &Material)> {
         let mut closest_so_far = t_max;
+        let mut res = None;
 
-        for object in &self.objects {
-            if object.hit(ray, t_min, closest_so_far, &mut temp_rec) {
-                hit_anything = true;
-                closest_so_far = temp_rec.t;
-                *rec = temp_rec.clone();
+        for h in self.objects.iter() {
+            if let Some((hit_record, material)) = h.hit(r, t_min, closest_so_far) {
+                closest_so_far = hit_record.t;
+                res = Some((hit_record.clone(), material));
             }
         }
-
-        hit_anything
+        res
     }
 }

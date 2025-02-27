@@ -8,46 +8,44 @@ mod ray;
 mod sphere;
 mod vec3;
 
-use std::io;
-use std::rc::Rc;
-
 use camera::Camera;
 use colour::Colour;
-use hittable::{HitRecord, Hittable};
+use hittable::Hittable;
 use hittable_list::HittableList;
-use material::{Dialectric, Lambertian, Metal};
+use material::Material;
 use ray::Ray;
 use sphere::Sphere;
+use std::sync::Mutex;
 use vec3::Point3;
+
+use rayon::prelude::*;
 
 fn ray_colour(r: &Ray, world: &dyn Hittable, depth: i32) -> Colour {
     if depth <= 0 {
         return Colour::new(0.0, 0.0, 0.0);
     }
-    let mut rec = HitRecord::new();
-    if world.hit(r, 0.001, common::INFINITY, &mut rec) {
-        let mut attenuation = Colour::default();
-        let mut scattered = Ray::default();
-        if rec
-            .mat
-            .as_ref()
-            .unwrap()
-            .scatter(r, &rec, &mut attenuation, &mut scattered)
-        {
-            return attenuation * ray_colour(&scattered, world, depth - 1);
-        }
-        return Colour::new(0.0, 0.0, 0.0);
-    }
 
-    let unit_direction = vec3::unit_vector(r.direction());
-    let t = 0.5 * (unit_direction.y() + 1.0);
-    (1.0 - t) * Colour::new(1.0, 1.0, 1.0) + t * Colour::new(0.5, 0.7, 1.0)
+    match world.hit(r, 0.001, common::INFINITY) {
+        Some((hit_record, material)) => match material.scatter(r, &hit_record) {
+            Some((attenuation, scattered)) => {
+                attenuation * ray_colour(&scattered, world, depth - 1)
+            }
+            None => Colour::new(0.0, 0.0, 0.0),
+        },
+        None => {
+            let unit_direction = vec3::unit_vector(r.direction());
+            let t = 0.5 * (unit_direction.y() + 1.0);
+            (1.0 - t) * Colour::new(1.0, 1.0, 1.0) + t * Colour::new(0.5, 0.7, 1.0)
+        }
+    }
 }
 
 fn random_scene() -> HittableList {
     let mut world = HittableList::new();
 
-    let ground_material = Rc::new(Lambertian::new(Colour::new(0.5, 0.5, 0.5)));
+    let ground_material = Material::Lambertian {
+        albedo: Colour::new(0.5, 0.5, 0.5),
+    };
     world.add(Box::new(Sphere::new(
         Point3::new(0.0, -1000.0, 0.0),
         1000.0,
@@ -67,38 +65,43 @@ fn random_scene() -> HittableList {
                 if choose_mat < 0.8 {
                     // Diffuse
                     let albedo = Colour::random() * Colour::random();
-                    let sphere_material = Rc::new(Lambertian::new(albedo));
+                    let sphere_material = Material::Lambertian { albedo };
                     world.add(Box::new(Sphere::new(center, 0.2, sphere_material)));
                 } else if choose_mat < 0.95 {
                     // Metal
                     let albedo = Colour::random_range(0.5, 1.0);
-                    let fuzz = common::random_double_range(0.0, 0.5);
-                    let sphere_material = Rc::new(Metal::new(albedo, fuzz));
+                    let fuzziness = common::random_double_range(0.0, 0.5);
+                    let sphere_material = Material::Metal { albedo, fuzziness };
                     world.add(Box::new(Sphere::new(center, 0.2, sphere_material)));
                 } else {
                     // Glass
-                    let sphere_material = Rc::new(Dialectric::new(1.5));
+                    let sphere_material = Material::Dialectric { refraction: 1.5 };
                     world.add(Box::new(Sphere::new(center, 0.2, sphere_material)));
                 }
             }
         }
     }
 
-    let material = Rc::new(Dialectric::new(1.5));
+    let material = Material::Dialectric { refraction: 1.5 };
     world.add(Box::new(Sphere::new(
         Point3::new(0.0, 1.0, 0.0),
         1.0,
         material,
     )));
 
-    let material = Rc::new(Lambertian::new(Colour::new(0.4, 0.2, 0.1)));
+    let material = Material::Lambertian {
+        albedo: Colour::new(0.4, 0.2, 0.1),
+    };
     world.add(Box::new(Sphere::new(
         Point3::new(-4.0, 1.0, 0.0),
         1.0,
         material,
     )));
 
-    let material = Rc::new(Metal::new(Colour::new(0.7, 0.6, 0.5), 0.0));
+    let material = Material::Metal {
+        albedo: Colour::new(0.7, 0.6, 0.5),
+        fuzziness: 0.0,
+    };
     world.add(Box::new(Sphere::new(
         Point3::new(4.0, 1.0, 0.0),
         1.0,
@@ -136,24 +139,39 @@ fn main() {
         dist_to_focus,
     );
 
+    let progress = Mutex::new(0);
+
+    let pixels = (0..IMAGE_HEIGHT)
+        .into_par_iter()
+        .rev()
+        .map(|j| {
+            {
+                let mut count = progress.lock().unwrap();
+                eprint!("\rScanlines remaining: {}", (IMAGE_HEIGHT - *count));
+                *count += 1;
+            }
+
+            (0..IMAGE_WIDTH)
+                .into_par_iter()
+                .map(|i| {
+                    let mut pixel_colour = Colour::new(0.0, 0.0, 0.0);
+                    for _ in 0..SAMPLES_PER_PIXEL {
+                        let u = (i as f64 + common::random_double()) / (IMAGE_WIDTH - 1) as f64;
+                        let v = (j as f64 + common::random_double()) / (IMAGE_HEIGHT - 1) as f64;
+                        let r = cam.get_ray(u, v);
+                        pixel_colour += ray_colour(&r, &world, MAX_DEPTH);
+                    }
+                    colour::write_colour(pixel_colour, SAMPLES_PER_PIXEL) + "\n"
+                })
+                .collect::<Vec<String>>()
+                .join("")
+        })
+        .collect::<Vec<String>>()
+        .join("");
+
     // Render
     println!("P3");
     println!("{} {}", IMAGE_WIDTH, IMAGE_HEIGHT);
     println!("255");
-
-    for j in (0..IMAGE_HEIGHT).rev() {
-        eprint!("\rScanlines remaining: {j: >5}");
-        for i in 0..IMAGE_WIDTH {
-            let mut pixel_colour = Colour::new(0.0, 0.0, 0.0);
-            for _ in 0..SAMPLES_PER_PIXEL {
-                let u = (i as f64 + common::random_double()) / (IMAGE_WIDTH - 1) as f64;
-                let v = (j as f64 + common::random_double()) / (IMAGE_HEIGHT - 1) as f64;
-                let r = cam.get_ray(u, v);
-                pixel_colour += ray_colour(&r, &world, MAX_DEPTH);
-            }
-            colour::write_colour(&mut io::stdout(), pixel_colour, SAMPLES_PER_PIXEL);
-        }
-    }
-
-    eprintln!("\nDone.")
+    println!("{}", pixels);
 }
