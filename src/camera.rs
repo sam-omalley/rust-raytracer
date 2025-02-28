@@ -106,10 +106,12 @@ impl Camera {
         // directed at a randomly sampled point around the pixel location.
         let rd = self.lens_radius * vec3::random_in_unit_disk();
         let offset = self.u * rd.x() + self.v * rd.y();
+        let ray_time = common::random_double();
 
-        Ray::new(
+        Ray::new_at(
             self.origin + offset,
             self.lower_left_corner + s * self.horizontal + t * self.vertical - self.origin - offset,
+            ray_time,
         )
     }
 

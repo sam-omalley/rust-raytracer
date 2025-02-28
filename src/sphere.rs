@@ -5,15 +5,23 @@ use crate::ray::Ray;
 use crate::vec3::{self, Point3};
 
 pub struct Sphere {
-    centre: Point3,
+    centre: Ray,
     radius: f64,
     material: Material,
 }
 
 impl Sphere {
-    pub fn new(centre: Point3, radius: f64, material: Material) -> Sphere {
+    pub fn stationary(centre: Point3, radius: f64, material: Material) -> Sphere {
         Sphere {
-            centre,
+            centre: Ray::new(centre, Point3::zero()),
+            radius,
+            material,
+        }
+    }
+
+    pub fn moving(centres: (Point3, Point3), radius: f64, material: Material) -> Sphere {
+        Sphere {
+            centre: Ray::new(centres.0, centres.1 - centres.0),
             radius,
             material,
         }
@@ -22,7 +30,8 @@ impl Sphere {
 
 impl Hittable for Sphere {
     fn hit(&self, r: &Ray, ray_t: Interval) -> Option<(HitRecord, &Material)> {
-        let oc = r.origin() - self.centre;
+        let current_centre = self.centre.at(r.time());
+        let oc = r.origin() - current_centre;
         let a = r.direction().length_squared();
         let half_b = vec3::dot(oc, r.direction());
         let c = oc.length_squared() - self.radius * self.radius;
@@ -45,7 +54,7 @@ impl Hittable for Sphere {
         let mut rec = HitRecord::new();
         rec.t = root;
         rec.p = r.at(rec.t);
-        let outward_normal = (rec.p - self.centre) / self.radius;
+        let outward_normal = (rec.p - current_centre) / self.radius;
         rec.set_face_normal(r, outward_normal);
 
         Some((rec, &self.material))
