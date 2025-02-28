@@ -1,3 +1,6 @@
+#![allow(dead_code)]
+
+mod aabb;
 mod camera;
 mod colour;
 mod common;
