@@ -2,7 +2,7 @@ use crate::interval::Interval;
 use crate::ray::Ray;
 use crate::vec3::Point3;
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct Aabb {
     x: Interval,
     y: Interval,
@@ -31,60 +31,52 @@ impl Aabb {
         }
     }
 
-    fn x(&self) -> &Interval {
+    pub fn x(&self) -> &Interval {
         &self.x
     }
 
-    fn y(&self) -> &Interval {
+    pub fn y(&self) -> &Interval {
         &self.y
     }
 
-    fn z(&self) -> &Interval {
+    pub fn z(&self) -> &Interval {
         &self.z
     }
 
-    fn axis_interval(&self, n: i32) -> &Interval {
+    pub fn axis_interval(&self, n: i32) -> &Interval {
         match n {
             1 => &self.y,
             2 => &self.z,
             _ => &self.x,
         }
     }
-    fn hit(&self, r: &Ray, ray_t: Interval) -> bool {
+    pub fn hit(&self, r: &Ray, ray_t: Interval) -> bool {
         let ray_orig = r.origin();
         let ray_dir = r.direction();
 
-        let mut min = ray_t.min();
-        let mut max = ray_t.max();
+        let t_min: f64 = ray_t.min();
+        let t_max: f64 = ray_t.max();
 
         // TODO: Move code into lib
         // TODO: Add unit test for hit function.
 
         // TODO: Replace with enum
-        for axis in 0..2 {
+        for axis in 0..3 {
             let &ax = self.axis_interval(axis);
-            let adinv: f64 = 1.0 / ray_dir.axis(axis).unwrap();
+            let adinv: f64 = 1.0 / ray_dir.axis(axis);
 
-            let t0 = (ax.min() - ray_orig.axis(axis).unwrap()) * adinv;
-            let t1 = (ax.max() - ray_orig.axis(axis).unwrap()) * adinv;
+            let mut t0 = (ax.min() - ray_orig.axis(axis)) * adinv;
+            let mut t1 = (ax.max() - ray_orig.axis(axis)) * adinv;
 
-            if t0 < t1 {
-                if t0 > min {
-                    min = t0
-                }
-                if t1 < max {
-                    max = t1
-                }
-            } else {
-                if t1 > min {
-                    min = t1
-                }
-                if t0 < max {
-                    max = t0
-                }
+            if adinv < 0.0
+            {
+                (t1, t0) = (t0, t1); // Swap t0 and t1
             }
 
-            if max <= min {
+            let t_min_temp = if t0 > t_min { t0 } else { t_min };
+            let t_max_temp = if t1 < t_max { t1 } else { t_max };
+
+            if t_max_temp <= t_min_temp {
                 return false;
             }
         }

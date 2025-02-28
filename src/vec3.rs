@@ -38,12 +38,11 @@ impl Vec3 {
         )
     }
 
-    pub fn axis(&self, n: i32) -> Option<f64> {
+    pub fn axis(&self, n: i32) -> f64 {
         match n {
-            0 => Some(self.x()),
-            1 => Some(self.y()),
-            2 => Some(self.z()),
-            _ => None,
+            1 => self.y(),
+            2 => self.z(),
+            _ => self.x(),
         }
     }
 
