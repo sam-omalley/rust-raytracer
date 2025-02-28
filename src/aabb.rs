@@ -1,100 +1,86 @@
+use crate::common;
 use crate::interval::Interval;
 use crate::ray::Ray;
 use crate::vec3::Point3;
 
 #[derive(Default, Clone)]
 pub struct Aabb {
-    x: Interval,
-    y: Interval,
-    z: Interval,
+    min: Point3,
+    max: Point3,
 }
 
 impl Aabb {
-    pub fn new(x: Interval, y: Interval, z: Interval) -> Aabb {
-        Aabb { x, y, z }
-    }
-
-    pub fn empty() -> Aabb {
+    pub fn new(minimum: Point3, maximum: Point3) -> Aabb {
         Aabb {
-            x: Interval::empty(),
-            y: Interval::empty(),
-            z: Interval::empty(),
+            min: minimum,
+            max: maximum,
         }
     }
 
     pub fn fit(a: Point3, b: Point3) -> Aabb {
-        // Treat the two points a and b as extrema for the bounding box, so we don't require a particular minimum/maximum coordinate order.
+        let small = Point3::new(a.x().min(b.x()), a.y().min(b.y()), a.z().min(b.z()));
+        let big = Point3::new(a.x().max(b.x()), a.y().max(b.y()), a.z().max(b.z()));
+
+        Aabb::new(small, big)
+    }
+
+    pub fn empty() -> Aabb {
         Aabb {
-            x: Interval::ordered(a.x(), b.x()),
-            y: Interval::ordered(a.y(), b.y()),
-            z: Interval::ordered(a.z(), b.z()),
+            min: Point3::new(common::INFINITY, common::INFINITY, common::INFINITY),
+            max: Point3::new(-common::INFINITY, -common::INFINITY, -common::INFINITY),
         }
     }
 
     pub fn combine(a: &Aabb, b: &Aabb) -> Aabb {
-        Aabb {
-            x: Interval::combine(a.x(), b.x()),
-            y: Interval::combine(a.y(), b.y()),
-            z: Interval::combine(a.z(), b.z()),
-        }
+        let small = Point3::new(
+            a.min().x().min(b.min().x()),
+            a.min().y().min(b.min().y()),
+            a.min().z().min(b.min().z()),
+        );
+
+        let big = Point3::new(
+            a.max().x().max(b.max().x()),
+            a.max().y().max(b.max().y()),
+            a.max().z().max(b.max().z()),
+        );
+
+        Aabb::new(small, big)
     }
 
-    pub fn x(&self) -> &Interval {
-        &self.x
+    pub fn min(&self) -> Point3 {
+        self.min
     }
 
-    pub fn y(&self) -> &Interval {
-        &self.y
-    }
-
-    pub fn z(&self) -> &Interval {
-        &self.z
+    pub fn max(&self) -> Point3 {
+        self.max
     }
 
     pub fn longest_axis(&self) -> usize {
         let mut longest_axis = 0;
         let mut longest = 0.0;
         for axis in 0..=2 {
-            let sz = self.axis_interval(axis).size();
+            let sz = f64::abs(self.max[axis] - self.min[axis]);
             if sz > longest {
-                longest_axis = axis;
                 longest = sz;
+                longest_axis = axis;
             }
         }
         longest_axis
     }
 
-    pub fn axis_interval(&self, n: usize) -> &Interval {
-        match n {
-            1 => &self.y,
-            2 => &self.z,
-            _ => &self.x,
-        }
-    }
     pub fn hit(&self, r: &Ray, ray_t: Interval) -> bool {
-        let ray_orig = r.origin();
-        let ray_dir = r.direction();
+        for a in 0..=2 {
+            let inv_d = 1.0 / r.direction()[a];
 
-        let t_min: f64 = ray_t.min();
-        let t_max: f64 = ray_t.max();
+            let mut t0 = (self.min()[a] - r.origin()[a]) * inv_d;
+            let mut t1 = (self.max()[a] - r.origin()[a]) * inv_d;
 
-        // TODO: Move code into lib
-        // TODO: Add unit test for hit function.
-
-        // TODO: Replace with enum
-        for axis in 0..=2 {
-            let &ax = self.axis_interval(axis);
-            let adinv: f64 = 1.0 / ray_dir[axis];
-
-            let mut t0 = (ax.min() - ray_orig[axis]) * adinv;
-            let mut t1 = (ax.max() - ray_orig[axis]) * adinv;
-
-            if adinv < 0.0 {
+            if inv_d < 0.0 {
                 (t1, t0) = (t0, t1); // Swap t0 and t1
             }
 
-            let t_min_temp = if t0 > t_min { t0 } else { t_min };
-            let t_max_temp = if t1 < t_max { t1 } else { t_max };
+            let t_min_temp = if t0 > ray_t.min() { t0 } else { ray_t.min() };
+            let t_max_temp = if t1 < ray_t.max() { t1 } else { ray_t.max() };
 
             if t_max_temp <= t_min_temp {
                 return false;
