@@ -22,7 +22,7 @@ fn random_scene() -> HittableList {
     let ground_material = Material::Lambertian {
         albedo: Colour::new(0.5, 0.5, 0.5),
     };
-    world.add(Box::new(Sphere::new(
+    world.add(Box::new(Sphere::stationary(
         Point3::new(0.0, -1000.0, 0.0),
         1000.0,
         ground_material,
@@ -42,24 +42,30 @@ fn random_scene() -> HittableList {
                     // Diffuse
                     let albedo = Colour::random() * Colour::random();
                     let sphere_material = Material::Lambertian { albedo };
-                    world.add(Box::new(Sphere::new(center, 0.2, sphere_material)));
+                    let centre2 =
+                        center + Point3::new(0.0, common::random_double_range(0.0, 0.5), 0.0);
+                    world.add(Box::new(Sphere::moving(
+                        (center, centre2),
+                        0.2,
+                        sphere_material,
+                    )));
                 } else if choose_mat < 0.95 {
                     // Metal
                     let albedo = Colour::random_range(0.5, 1.0);
                     let fuzziness = common::random_double_range(0.0, 0.5);
                     let sphere_material = Material::Metal { albedo, fuzziness };
-                    world.add(Box::new(Sphere::new(center, 0.2, sphere_material)));
+                    world.add(Box::new(Sphere::stationary(center, 0.2, sphere_material)));
                 } else {
                     // Glass
                     let sphere_material = Material::Dialectric { refraction: 1.5 };
-                    world.add(Box::new(Sphere::new(center, 0.2, sphere_material)));
+                    world.add(Box::new(Sphere::stationary(center, 0.2, sphere_material)));
                 }
             }
         }
     }
 
     let material = Material::Dialectric { refraction: 1.5 };
-    world.add(Box::new(Sphere::new(
+    world.add(Box::new(Sphere::stationary(
         Point3::new(0.0, 1.0, 0.0),
         1.0,
         material,
@@ -67,7 +73,7 @@ fn random_scene() -> HittableList {
     let material = Material::Dialectric {
         refraction: 1.0 / 1.5,
     };
-    world.add(Box::new(Sphere::new(
+    world.add(Box::new(Sphere::stationary(
         Point3::new(0.0, 1.0, 0.0),
         0.9,
         material,
@@ -76,7 +82,7 @@ fn random_scene() -> HittableList {
     let material = Material::Lambertian {
         albedo: Colour::new(0.4, 0.2, 0.1),
     };
-    world.add(Box::new(Sphere::new(
+    world.add(Box::new(Sphere::stationary(
         Point3::new(-4.0, 1.0, 0.0),
         1.0,
         material,
@@ -86,7 +92,7 @@ fn random_scene() -> HittableList {
         albedo: Colour::new(0.7, 0.6, 0.5),
         fuzziness: 0.0,
     };
-    world.add(Box::new(Sphere::new(
+    world.add(Box::new(Sphere::stationary(
         Point3::new(4.0, 1.0, 0.0),
         1.0,
         material,
@@ -97,10 +103,10 @@ fn random_scene() -> HittableList {
 
 fn main() {
     // Image
-    const ASPECT_RATIO: f64 = 3.0 / 2.0;
-    const IMAGE_WIDTH: i32 = 1200;
+    const ASPECT_RATIO: f64 = 16.0 / 9.0; //3.0 / 2.0;
+    const IMAGE_WIDTH: i32 = 400; // 1200;
     const IMAGE_HEIGHT: i32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as i32;
-    const SAMPLES_PER_PIXEL: i32 = 5; // 500; // 500;
+    const SAMPLES_PER_PIXEL: i32 = 100; // 500;
     const MAX_DEPTH: i32 = 50;
 
     let render = Render {

@@ -27,12 +27,15 @@ impl Material {
                     scatter_direction = rec.normal;
                 }
 
-                Some((*albedo, Ray::new(rec.p, scatter_direction)))
+                Some((*albedo, Ray::new_at(rec.p, scatter_direction, r_in.time())))
             }
             Material::Metal { albedo, fuzziness } => {
                 let reflected = vec3::reflect(vec3::unit_vector(r_in.direction()), rec.normal);
-                let scattered =
-                    Ray::new(rec.p, reflected + *fuzziness * vec3::random_in_unit_sphere());
+                let scattered = Ray::new_at(
+                    rec.p,
+                    reflected + *fuzziness * vec3::random_in_unit_sphere(),
+                    r_in.time(),
+                );
 
                 if vec3::dot(scattered.direction(), rec.normal) <= 0.0 {
                     None
@@ -60,7 +63,10 @@ impl Material {
                     vec3::refract(unit_direction, rec.normal, refraction_ratio)
                 };
 
-                Some((Colour::new(1.0, 1.0, 1.0), Ray::new(rec.p, direction)))
+                Some((
+                    Colour::new(1.0, 1.0, 1.0),
+                    Ray::new_at(rec.p, direction, r_in.time()),
+                ))
             }
         }
     }
