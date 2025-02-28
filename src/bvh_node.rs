@@ -1,5 +1,4 @@
 use crate::aabb::Aabb;
-use crate::common;
 use crate::hittable::{HitRecord, Hittable};
 use crate::interval::Interval;
 use crate::material::Material;
@@ -20,13 +19,18 @@ impl BvhNode {
     }
 
     fn from_list(src_objects: &Vec<Arc<dyn Hittable>>, start: usize, end: usize) -> Self {
-        let axis = common::random_int(0, 2);
+        let mut objects = src_objects.clone();
+        let mut bbox = Aabb::empty();
+        for obj_idx in start..end {
+            bbox = Aabb::combine(&bbox, objects[obj_idx].bounding_box());
+        }
+        let axis = bbox.longest_axis();
+
         let comparator = |a: &Arc<dyn Hittable>, b: &Arc<dyn Hittable>| {
             BvhNode::box_compare(a.clone(), b.clone(), axis)
         };
 
         let object_span = end - start;
-        let mut objects = src_objects.clone();
 
         let left: Arc<dyn Hittable>;
         let right: Arc<dyn Hittable>;
@@ -50,8 +54,6 @@ impl BvhNode {
             left = Arc::new(Self::from_list(&objects, start, mid));
             right = Arc::new(Self::from_list(&objects, mid, end));
         }
-
-        let bbox = Aabb::combine(&left.bounding_box(), &right.bounding_box());
 
         BvhNode { left, right, bbox }
     }
