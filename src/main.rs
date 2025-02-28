@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 
 mod aabb;
+mod bvh_node;
 mod camera;
 mod colour;
 mod common;
@@ -16,8 +17,11 @@ use camera::{Camera, Render};
 use colour::Colour;
 use hittable_list::HittableList;
 use material::Material;
+use bvh_node::BvhNode;
 use sphere::Sphere;
 use vec3::Point3;
+
+use std::sync::Arc;
 
 fn random_scene() -> HittableList {
     let mut world = HittableList::new();
@@ -25,7 +29,7 @@ fn random_scene() -> HittableList {
     let ground_material = Material::Lambertian {
         albedo: Colour::new(0.5, 0.5, 0.5),
     };
-    world.add(Box::new(Sphere::stationary(
+    world.add(Arc::new(Sphere::stationary(
         Point3::new(0.0, -1000.0, 0.0),
         1000.0,
         ground_material,
@@ -47,7 +51,7 @@ fn random_scene() -> HittableList {
                     let sphere_material = Material::Lambertian { albedo };
                     let centre2 =
                         center + Point3::new(0.0, common::random_double_range(0.0, 0.5), 0.0);
-                    world.add(Box::new(Sphere::moving(
+                    world.add(Arc::new(Sphere::moving(
                         (center, centre2),
                         0.2,
                         sphere_material,
@@ -57,18 +61,18 @@ fn random_scene() -> HittableList {
                     let albedo = Colour::random_range(0.5, 1.0);
                     let fuzziness = common::random_double_range(0.0, 0.5);
                     let sphere_material = Material::Metal { albedo, fuzziness };
-                    world.add(Box::new(Sphere::stationary(center, 0.2, sphere_material)));
+                    world.add(Arc::new(Sphere::stationary(center, 0.2, sphere_material)));
                 } else {
                     // Glass
                     let sphere_material = Material::Dialectric { refraction: 1.5 };
-                    world.add(Box::new(Sphere::stationary(center, 0.2, sphere_material)));
+                    world.add(Arc::new(Sphere::stationary(center, 0.2, sphere_material)));
                 }
             }
         }
     }
 
     let material = Material::Dialectric { refraction: 1.5 };
-    world.add(Box::new(Sphere::stationary(
+    world.add(Arc::new(Sphere::stationary(
         Point3::new(0.0, 1.0, 0.0),
         1.0,
         material,
@@ -76,7 +80,7 @@ fn random_scene() -> HittableList {
     let material = Material::Dialectric {
         refraction: 1.0 / 1.5,
     };
-    world.add(Box::new(Sphere::stationary(
+    world.add(Arc::new(Sphere::stationary(
         Point3::new(0.0, 1.0, 0.0),
         0.9,
         material,
@@ -85,7 +89,7 @@ fn random_scene() -> HittableList {
     let material = Material::Lambertian {
         albedo: Colour::new(0.4, 0.2, 0.1),
     };
-    world.add(Box::new(Sphere::stationary(
+    world.add(Arc::new(Sphere::stationary(
         Point3::new(-4.0, 1.0, 0.0),
         1.0,
         material,
@@ -95,7 +99,7 @@ fn random_scene() -> HittableList {
         albedo: Colour::new(0.7, 0.6, 0.5),
         fuzziness: 0.0,
     };
-    world.add(Box::new(Sphere::stationary(
+    world.add(Arc::new(Sphere::stationary(
         Point3::new(4.0, 1.0, 0.0),
         1.0,
         material,
@@ -121,6 +125,7 @@ fn main() {
 
     // World
     let world = random_scene();
+    let world = BvhNode::new(&world.objects());
 
     // Camera
     let lookfrom = Point3::new(13.0, 2.0, 3.0);

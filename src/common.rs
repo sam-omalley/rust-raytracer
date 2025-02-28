@@ -21,6 +21,10 @@ pub fn random_double() -> f64 {
     RNG.with(|rng| rng.borrow_mut().random())
 }
 
+pub fn random_int(min: i32, max: i32) -> i32 {
+    RNG.with(|rng| rng.borrow_mut().random_range(min..=max))
+}
+
 pub fn random_double_range(min: f64, max: f64) -> f64 {
     // Return a random real in [min, max)
     min + (max - min) * random_double()

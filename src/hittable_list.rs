@@ -4,9 +4,11 @@ use crate::interval::Interval;
 use crate::material::Material;
 use crate::ray::Ray;
 
-#[derive(Default)]
+use std::sync::Arc;
+
+#[derive(Default, Clone)]
 pub struct HittableList {
-    objects: Vec<Box<dyn Hittable>>,
+    objects: Vec<Arc<dyn Hittable>>,
     bbox: Aabb,
 }
 
@@ -15,9 +17,13 @@ impl HittableList {
         Default::default()
     }
 
-    pub fn add(&mut self, object: Box<dyn Hittable>) {
+    pub fn add(&mut self, object: Arc<dyn Hittable>) {
         self.bbox = Aabb::combine(&self.bbox, &object.bounding_box());
         self.objects.push(object);
+    }
+
+    pub fn objects(&self) -> Vec<Arc<dyn Hittable>> {
+        self.objects.clone()
     }
 }
 
