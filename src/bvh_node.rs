@@ -58,11 +58,11 @@ impl BvhNode {
         BvhNode { left, right, bbox }
     }
 
-    fn box_compare(a: Arc<dyn Hittable>, b: Arc<dyn Hittable>, axis_index: usize) -> Ordering {
-        let a_axis_interval = a.bounding_box().axis_interval(axis_index);
-        let b_axis_interval = b.bounding_box().axis_interval(axis_index);
+    fn box_compare(a: Arc<dyn Hittable>, b: Arc<dyn Hittable>, axis: usize) -> Ordering {
+        let a_box = a.bounding_box();
+        let b_box = b.bounding_box();
 
-        if a_axis_interval.min() <= b_axis_interval.min() {
+        if a_box.min()[axis] <= b_box.min()[axis] {
             Ordering::Less
         } else {
             Ordering::Greater
