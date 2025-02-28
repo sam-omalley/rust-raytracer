@@ -51,7 +51,7 @@ impl Aabb {
         &self.z
     }
 
-    pub fn longest_axis(&self) -> i32 {
+    pub fn longest_axis(&self) -> usize {
         let mut longest_axis = 0;
         let mut longest = 0.0;
         for axis in 0..=2 {
@@ -64,7 +64,7 @@ impl Aabb {
         longest_axis
     }
 
-    pub fn axis_interval(&self, n: i32) -> &Interval {
+    pub fn axis_interval(&self, n: usize) -> &Interval {
         match n {
             1 => &self.y,
             2 => &self.z,
@@ -84,10 +84,10 @@ impl Aabb {
         // TODO: Replace with enum
         for axis in 0..=2 {
             let &ax = self.axis_interval(axis);
-            let adinv: f64 = 1.0 / ray_dir.axis(axis);
+            let adinv: f64 = 1.0 / ray_dir[axis];
 
-            let mut t0 = (ax.min() - ray_orig.axis(axis)) * adinv;
-            let mut t1 = (ax.max() - ray_orig.axis(axis)) * adinv;
+            let mut t0 = (ax.min() - ray_orig[axis]) * adinv;
+            let mut t1 = (ax.max() - ray_orig[axis]) * adinv;
 
             if adinv < 0.0 {
                 (t1, t0) = (t0, t1); // Swap t0 and t1

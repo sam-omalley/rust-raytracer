@@ -115,7 +115,7 @@ fn main() {
     let _render = Render {
         width: 640,
         height: 360,
-        samples_per_pixel: 100,
+        samples_per_pixel: 50,
         max_depth: 50,
     };
 

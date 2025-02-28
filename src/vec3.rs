@@ -1,61 +1,55 @@
 use crate::common;
 use std::fmt::{Display, Formatter, Result};
-use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub};
+use std::ops::{Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub};
 
 #[derive(PartialEq, Copy, Clone, Default)]
 pub struct Vec3 {
-    x: f64,
-    y: f64,
-    z: f64,
+    e: [f64; 3],
 }
 
 impl Vec3 {
     pub fn new(x: f64, y: f64, z: f64) -> Vec3 {
-        Vec3 { x, y, z }
+        Vec3 { e: [x, y, z] }
     }
 
     pub fn zero() -> Vec3 {
-        Vec3 {
-            x: 0.0,
-            y: 0.0,
-            z: 0.0,
-        }
+        Vec3 { e: [0.0, 0.0, 0.0] }
     }
 
     pub fn random() -> Vec3 {
-        Vec3::new(
-            common::random_double(),
-            common::random_double(),
-            common::random_double(),
-        )
-    }
-
-    pub fn random_range(min: f64, max: f64) -> Vec3 {
-        Vec3::new(
-            common::random_double_range(min, max),
-            common::random_double_range(min, max),
-            common::random_double_range(min, max),
-        )
-    }
-
-    pub fn axis(&self, n: i32) -> f64 {
-        match n {
-            1 => self.y(),
-            2 => self.z(),
-            _ => self.x(),
+        Vec3 {
+            e: [
+                common::random_double(),
+                common::random_double(),
+                common::random_double(),
+            ],
         }
     }
 
+    pub fn random_range(min: f64, max: f64) -> Vec3 {
+        Vec3 {
+            e: [
+                common::random_double_range(min, max),
+                common::random_double_range(min, max),
+                common::random_double_range(min, max),
+            ],
+        }
+    }
+
+    pub fn axis(&self, n: usize) -> f64 {
+        self.e[n]
+    }
+
     pub fn x(&self) -> f64 {
-        self.x
+        self.e[0]
     }
 
     pub fn y(&self) -> f64 {
-        self.y
+        self.e[1]
     }
 
     pub fn z(&self) -> f64 {
-        self.z
+        self.e[2]
     }
 
     pub fn length(&self) -> f64 {
@@ -63,13 +57,13 @@ impl Vec3 {
     }
 
     pub fn length_squared(&self) -> f64 {
-        (self.x * self.x) + (self.y * self.y) + (self.z * self.z)
+        (self.e[0] * self.e[0]) + (self.e[1] * self.e[1]) + (self.e[2] * self.e[2])
     }
 
     pub fn near_zero(&self) -> bool {
         const EPS: f64 = 1.0e-8;
         // Return true if the vector is close to zero in all dimensions.
-        self.x().abs() < EPS && self.y().abs() < EPS && self.z().abs() < EPS
+        f64::abs(self.e[0]) < EPS && f64::abs(self.e[1]) < EPS && f64::abs(self.e[2]) < EPS
     }
 }
 
@@ -79,7 +73,7 @@ pub type Point3 = Vec3;
 // Output formatting
 impl Display for Vec3 {
     fn fmt(&self, f: &mut Formatter) -> Result {
-        write!(f, "{} {} {}", self.x, self.y, self.z)
+        write!(f, "{} {} {}", self.e[0], self.e[1], self.e[2])
     }
 }
 
@@ -88,7 +82,7 @@ impl Neg for Vec3 {
     type Output = Vec3;
 
     fn neg(self) -> Vec3 {
-        Vec3::new(-self.x, -self.y, -self.z)
+        Vec3::new(-self.e[0], -self.e[1], -self.e[2])
     }
 }
 
@@ -110,6 +104,19 @@ impl MulAssign<f64> for Vec3 {
 impl DivAssign<f64> for Vec3 {
     fn div_assign(&mut self, t: f64) {
         *self = *self / t;
+    }
+}
+
+impl Index<usize> for Vec3 {
+    type Output = f64;
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.e[index]
+    }
+}
+
+impl IndexMut<usize> for Vec3 {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        &mut self.e[index]
     }
 }
 
@@ -168,14 +175,14 @@ impl Div<f64> for Vec3 {
 }
 
 pub fn dot(u: Vec3, v: Vec3) -> f64 {
-    (u.x * v.x) + (u.y * v.y) + (u.z * v.z)
+    (u.e[0] * v.e[0]) + (u.e[1] * v.e[1]) + (u.e[2] * v.e[2])
 }
 
 pub fn cross(u: Vec3, v: Vec3) -> Vec3 {
     Vec3::new(
-        u.y * v.z - u.z * v.y,
-        u.z * v.x - u.x * v.z,
-        u.x * v.y - u.y * v.x,
+        u.e[1] * v.e[2] - u.e[2] * v.e[1],
+        u.e[2] * v.e[0] - u.e[0] * v.e[2],
+        u.e[0] * v.e[1] - u.e[1] * v.e[0],
     )
 }
 
