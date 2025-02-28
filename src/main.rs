@@ -110,17 +110,20 @@ fn random_scene() -> HittableList {
 
 fn main() {
     // Image
-    const ASPECT_RATIO: f64 = 16.0 / 9.0; //3.0 / 2.0;
-    const IMAGE_WIDTH: i32 = 400; // 1200;
-    const IMAGE_HEIGHT: i32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as i32;
-    const SAMPLES_PER_PIXEL: i32 = 100; // 500;
-    const MAX_DEPTH: i32 = 50;
+    const ASPECT_RATIO: f64 = 16.0 / 9.0;
 
-    let render = Render {
-        width: IMAGE_WIDTH,
-        height: IMAGE_HEIGHT,
-        samples_per_pixel: SAMPLES_PER_PIXEL,
-        max_depth: MAX_DEPTH,
+    let _render = Render {
+        width: 640,
+        height: 360,
+        samples_per_pixel: 100,
+        max_depth: 50,
+    };
+
+    let _big_render = Render {
+        width: 1920,
+        height: 1080,
+        samples_per_pixel: 500,
+        max_depth: 50,
     };
 
     // World
@@ -144,5 +147,6 @@ fn main() {
         dist_to_focus,
     );
 
-    cam.render(&world, &render);
+    cam.render(&world, &_render);
+    //cam.render(&world, &_big_render);
 }

@@ -14,6 +14,14 @@ impl Aabb {
         Aabb { x, y, z }
     }
 
+    pub fn empty() -> Aabb {
+        Aabb {
+            x: Interval::empty(),
+            y: Interval::empty(),
+            z: Interval::empty(),
+        }
+    }
+
     pub fn fit(a: Point3, b: Point3) -> Aabb {
         // Treat the two points a and b as extrema for the bounding box, so we don't require a particular minimum/maximum coordinate order.
         Aabb {
@@ -43,6 +51,19 @@ impl Aabb {
         &self.z
     }
 
+    pub fn longest_axis(&self) -> i32 {
+        let mut longest_axis = 0;
+        let mut longest = 0.0;
+        for axis in 0..=2 {
+            let sz = self.axis_interval(axis).size();
+            if sz > longest {
+                longest_axis = axis;
+                longest = sz;
+            }
+        }
+        longest_axis
+    }
+
     pub fn axis_interval(&self, n: i32) -> &Interval {
         match n {
             1 => &self.y,
@@ -61,15 +82,14 @@ impl Aabb {
         // TODO: Add unit test for hit function.
 
         // TODO: Replace with enum
-        for axis in 0..3 {
+        for axis in 0..=2 {
             let &ax = self.axis_interval(axis);
             let adinv: f64 = 1.0 / ray_dir.axis(axis);
 
             let mut t0 = (ax.min() - ray_orig.axis(axis)) * adinv;
             let mut t1 = (ax.max() - ray_orig.axis(axis)) * adinv;
 
-            if adinv < 0.0
-            {
+            if adinv < 0.0 {
                 (t1, t0) = (t0, t1); // Swap t0 and t1
             }
 
