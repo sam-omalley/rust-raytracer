@@ -9,38 +9,12 @@ mod ray;
 mod sphere;
 mod vec3;
 
-use camera::Camera;
+use camera::{Camera, Render};
 use colour::Colour;
-use hittable::Hittable;
 use hittable_list::HittableList;
-use interval::Interval;
 use material::Material;
-use ray::Ray;
 use sphere::Sphere;
-use std::sync::Mutex;
 use vec3::Point3;
-
-use rayon::prelude::*;
-
-fn ray_colour(r: &Ray, world: &dyn Hittable, depth: i32) -> Colour {
-    if depth <= 0 {
-        return Colour::new(0.0, 0.0, 0.0);
-    }
-
-    match world.hit(r, Interval::new(0.001, common::INFINITY)) {
-        Some((hit_record, material)) => match material.scatter(r, &hit_record) {
-            Some((attenuation, scattered)) => {
-                attenuation * ray_colour(&scattered, world, depth - 1)
-            }
-            None => Colour::new(0.0, 0.0, 0.0),
-        },
-        None => {
-            let unit_direction = vec3::unit_vector(r.direction());
-            let t = 0.5 * (unit_direction.y() + 1.0);
-            (1.0 - t) * Colour::new(1.0, 1.0, 1.0) + t * Colour::new(0.5, 0.7, 1.0)
-        }
-    }
-}
 
 fn random_scene() -> HittableList {
     let mut world = HittableList::new();
@@ -129,6 +103,13 @@ fn main() {
     const SAMPLES_PER_PIXEL: i32 = 5; // 500; // 500;
     const MAX_DEPTH: i32 = 50;
 
+    let render = Render {
+        width: IMAGE_WIDTH,
+        height: IMAGE_HEIGHT,
+        samples_per_pixel: SAMPLES_PER_PIXEL,
+        max_depth: MAX_DEPTH,
+    };
+
     // World
     let world = random_scene();
 
@@ -149,40 +130,5 @@ fn main() {
         dist_to_focus,
     );
 
-    let progress = Mutex::new(0);
-
-    let num_pixels = IMAGE_WIDTH * IMAGE_HEIGHT;
-
-    let pixels: Vec<(u8, u8, u8)> = (0..num_pixels)
-        .into_par_iter()
-        .map(|index| {
-            {
-                let mut count = progress.lock().unwrap();
-                if *count % 1000 == 0 {
-                    eprint!("\rScanlines remaining: {}", (num_pixels - *count));
-                }
-                *count += 1;
-            }
-
-            let i = index % IMAGE_WIDTH;
-            let j = IMAGE_HEIGHT - (index / IMAGE_WIDTH) - 1;
-
-            let mut pixel_colour = Colour::new(0.0, 0.0, 0.0);
-            for _ in 0..SAMPLES_PER_PIXEL {
-                let u = (i as f64 + common::random_double()) / (IMAGE_WIDTH - 1) as f64;
-                let v = (j as f64 + common::random_double()) / (IMAGE_HEIGHT - 1) as f64;
-                let r = cam.get_ray(u, v);
-                pixel_colour += ray_colour(&r, &world, MAX_DEPTH);
-            }
-            colour::get_output_colour(pixel_colour, SAMPLES_PER_PIXEL)
-        })
-        .collect::<Vec<(u8, u8, u8)>>();
-
-    // Render
-    println!("P3");
-    println!("{} {}", IMAGE_WIDTH, IMAGE_HEIGHT);
-    println!("255");
-    for (r, g, b) in pixels {
-        println!("{} {} {}", r, g, b);
-    }
+    cam.render(&world, &render);
 }
