@@ -62,7 +62,7 @@ impl Camera {
         }
     }
 
-    pub fn render(&self, world: &dyn Hittable, render: &Render) -> () {
+    pub fn render(&self, world: &dyn Hittable, render: &Render) {
         let progress = Mutex::new(0);
 
         let num_pixels = render.width * render.height;

@@ -11,14 +11,16 @@ mod interval;
 mod material;
 mod ray;
 mod sphere;
+mod texture;
 mod vec3;
 
+use bvh_node::BvhNode;
 use camera::{Camera, Render};
 use colour::Colour;
 use hittable_list::HittableList;
 use material::Material;
-use bvh_node::BvhNode;
 use sphere::Sphere;
+use texture::Texture;
 use vec3::Point3;
 
 use std::sync::Arc;
@@ -27,8 +29,13 @@ fn random_scene() -> HittableList {
     let mut world = HittableList::new();
 
     let ground_material = Material::Lambertian {
-        albedo: Colour::new(0.5, 0.5, 0.5),
+        texture: Texture::CheckerTexture {
+            scale: 0.32,
+            even: Box::new(Colour::new(0.2, 0.3, 0.1).into()),
+            odd: Box::new(Colour::new(0.9, 0.9, 0.9).into()),
+        },
     };
+
     world.add(Arc::new(Sphere::stationary(
         Point3::new(0.0, -1000.0, 0.0),
         1000.0,
@@ -48,7 +55,9 @@ fn random_scene() -> HittableList {
                 if choose_mat < 0.8 {
                     // Diffuse
                     let albedo = Colour::random() * Colour::random();
-                    let sphere_material = Material::Lambertian { albedo };
+                    let sphere_material = Material::Lambertian {
+                        texture: albedo.into(),
+                    };
                     let centre2 =
                         center + Point3::new(0.0, common::random_double_range(0.0, 0.5), 0.0);
                     world.add(Arc::new(Sphere::moving(
@@ -87,7 +96,7 @@ fn random_scene() -> HittableList {
     )));
 
     let material = Material::Lambertian {
-        albedo: Colour::new(0.4, 0.2, 0.1),
+        texture: Colour::new(0.4, 0.2, 0.1).into(),
     };
     world.add(Arc::new(Sphere::stationary(
         Point3::new(-4.0, 1.0, 0.0),
@@ -112,10 +121,17 @@ fn main() {
     // Image
     const ASPECT_RATIO: f64 = 16.0 / 9.0;
 
-    let _render = Render {
+    let _small_render = Render {
         width: 640,
         height: 360,
         samples_per_pixel: 50,
+        max_depth: 50,
+    };
+
+    let _copy_render = Render {
+        width: 1820,
+        height: 1024,
+        samples_per_pixel: 100,
         max_depth: 50,
     };
 
@@ -147,6 +163,7 @@ fn main() {
         dist_to_focus,
     );
 
-    cam.render(&world, &_render);
+    cam.render(&world, &_small_render);
+    //cam.render(&world, &_copy_render);
     //cam.render(&world, &_big_render);
 }

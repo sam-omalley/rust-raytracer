@@ -18,7 +18,7 @@ impl HittableList {
     }
 
     pub fn add(&mut self, object: Arc<dyn Hittable>) {
-        self.bbox = Aabb::combine(&self.bbox, &object.bounding_box());
+        self.bbox = Aabb::combine(&self.bbox, object.bounding_box());
         self.objects.push(object);
     }
 

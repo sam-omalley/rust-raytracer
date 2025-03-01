@@ -15,14 +15,14 @@ pub struct BvhNode {
 
 impl BvhNode {
     pub fn new(objects: &Vec<Arc<dyn Hittable>>) -> Self {
-        BvhNode::from_list(&objects, 0, objects.len())
+        BvhNode::from_list(objects, 0, objects.len())
     }
 
     fn from_list(src_objects: &Vec<Arc<dyn Hittable>>, start: usize, end: usize) -> Self {
-        let mut objects = src_objects.clone();
+        let mut objects = src_objects.to_owned();
         let mut bbox = Aabb::empty();
-        for obj_idx in start..end {
-            bbox = Aabb::combine(&bbox, objects[obj_idx].bounding_box());
+        for obj in objects.iter().take(end).skip(start) {
+            bbox = Aabb::combine(&bbox, obj.bounding_box());
         }
         let axis = bbox.longest_axis();
 
