@@ -1,10 +1,11 @@
 use crate::colour::Colour;
 use crate::hittable::HitRecord;
 use crate::ray::Ray;
+use crate::texture::Texture;
 use crate::{common, vec3};
 
 pub enum Material {
-    Lambertian { albedo: Colour },
+    Lambertian { texture: Texture },
     Metal { albedo: Colour, fuzziness: f64 },
     Dialectric { refraction: f64 },
 }
@@ -19,7 +20,7 @@ fn reflectance(cosine: f64, ref_idx: f64) -> f64 {
 impl Material {
     pub fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<(Colour, Ray)> {
         match self {
-            Material::Lambertian { albedo } => {
+            Material::Lambertian { texture } => {
                 let mut scatter_direction = rec.normal + vec3::random_unit_vector();
 
                 // Catch degenerate scatter direction
@@ -27,7 +28,10 @@ impl Material {
                     scatter_direction = rec.normal;
                 }
 
-                Some((*albedo, Ray::new_at(rec.p, scatter_direction, r_in.time())))
+                Some((
+                    texture.colour(rec.u, rec.v, rec.p),
+                    Ray::new_at(rec.p, scatter_direction, r_in.time()),
+                ))
             }
             Material::Metal { albedo, fuzziness } => {
                 let reflected = vec3::reflect(vec3::unit_vector(r_in.direction()), rec.normal);
