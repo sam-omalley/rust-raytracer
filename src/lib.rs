@@ -54,7 +54,7 @@ pub fn bouncing_spheres(render: &Render) {
     let mut world = HittableList::new();
 
     let ground_material = Material::Lambertian {
-        texture: Texture::CheckerTexture {
+        texture: Texture::Checker {
             scale: Vec3::fill(0.32),
             even: Box::new(Colour::new(0.2, 0.3, 0.1).into()),
             odd: Box::new(Colour::new(0.9, 0.9, 0.9).into()),
@@ -158,7 +158,7 @@ pub fn checkered_spheres(render: &Render) {
     // World
     let mut world = HittableList::new();
 
-    let checker = Texture::CheckerTexture {
+    let checker = Texture::Checker {
         scale: Vec3::fill(0.32),
         even: Box::new(Colour::new(0.2, 0.3, 0.1).into()),
         odd: Box::new(Colour::new(0.9, 0.9, 0.9).into()),
@@ -198,7 +198,7 @@ pub fn earth(render: &Render) {
     // World
     let mut world = HittableList::new();
 
-    let earth_texture = Texture::ImageTexture {
+    let earth_texture = Texture::Image {
         image: texture::load_image("earthmap.jpg"),
     };
     let earth_surface = Material::Lambertian {
