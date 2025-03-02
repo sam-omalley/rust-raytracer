@@ -1,6 +1,17 @@
 use crate::colour::Colour;
 use crate::vec3::{Point3, Vec3};
 
+use image::{Pixel, RgbImage};
+
+pub fn load_image(name: &str) -> RgbImage {
+    let img = image::open(format!(
+        "{}/{}",
+        "/Users/sam/Projects/rust/ray-tracing/data/", name
+    ))
+    .unwrap();
+    img.to_rgb8()
+}
+
 #[derive(Clone)]
 pub enum Texture {
     SolidColour {
@@ -10,6 +21,9 @@ pub enum Texture {
         scale: Vec3,
         even: Box<Texture>,
         odd: Box<Texture>,
+    },
+    ImageTexture {
+        image: RgbImage,
     },
 }
 
@@ -36,6 +50,27 @@ impl Texture {
                 } else {
                     odd.colour(u, v, p)
                 }
+            }
+            Texture::ImageTexture { image } => {
+                let u = u.clamp(0.0, 1.0);
+                let v = v.clamp(0.0, 1.0);
+
+                let mut i = f64::floor(u * image.width() as f64) as u32;
+                i %= image.width();
+
+                let mut j = f64::floor(v * image.height() as f64) as u32;
+                j %= image.height();
+                // Invert j
+                j = image.height() - j;
+
+                let pixel = image.get_pixel(i, j).to_rgb();
+                let colour_scale = 1.0 / 255.0;
+
+                Colour::new(
+                    colour_scale * pixel.0[0] as f64,
+                    colour_scale * pixel.0[1] as f64,
+                    colour_scale * pixel.0[2] as f64,
+                )
             }
         }
     }

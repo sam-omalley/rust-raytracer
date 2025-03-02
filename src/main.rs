@@ -1,5 +1,4 @@
 use ray_tracing::*;
-
 use std::env;
 
 const USAGE: &str = "Usage: ./ray-tracer <scene num> <LOW|MED|HIGH quality>";
@@ -24,6 +23,7 @@ fn main() {
     match scene {
         1 => bouncing_spheres(&render),
         2 => checkered_spheres(&render),
+        3 => earth(&render),
         _ => panic!("Unsupported scene: {}", scene),
     }
 }
