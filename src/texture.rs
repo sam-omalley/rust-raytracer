@@ -1,6 +1,7 @@
 use crate::colour::Colour;
 use crate::vec3::Point3;
 
+#[derive(Clone)]
 pub enum Texture {
     SolidColour {
         albedo: Colour,

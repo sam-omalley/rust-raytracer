@@ -21,11 +21,37 @@ use hittable_list::HittableList;
 use material::Material;
 use sphere::Sphere;
 use texture::Texture;
-use vec3::Point3;
+use vec3::{Point3, Vec3};
 
+use std::env;
 use std::sync::Arc;
 
-fn random_scene() -> HittableList {
+// Image
+const ASPECT_RATIO: f64 = 16.0 / 9.0;
+
+const LOW_QUALITY_RENDER: Render = Render {
+    width: 640,
+    height: 360,
+    samples_per_pixel: 50,
+    max_depth: 50,
+};
+
+const MEDIUM_QUALITY_RENDER: Render = Render {
+    width: 1820,
+    height: 1024,
+    samples_per_pixel: 100,
+    max_depth: 50,
+};
+
+const HIGH_QUALITY_RENDER: Render = Render {
+    width: 1920,
+    height: 1080,
+    samples_per_pixel: 500,
+    max_depth: 50,
+};
+
+fn bouncing_spheres(render: &Render) {
+    // World
     let mut world = HittableList::new();
 
     let ground_material = Material::Lambertian {
@@ -113,57 +139,89 @@ fn random_scene() -> HittableList {
         1.0,
         material,
     )));
-
-    world
-}
-
-fn main() {
-    // Image
-    const ASPECT_RATIO: f64 = 16.0 / 9.0;
-
-    let _small_render = Render {
-        width: 640,
-        height: 360,
-        samples_per_pixel: 50,
-        max_depth: 50,
-    };
-
-    let _copy_render = Render {
-        width: 1820,
-        height: 1024,
-        samples_per_pixel: 100,
-        max_depth: 50,
-    };
-
-    let _big_render = Render {
-        width: 1920,
-        height: 1080,
-        samples_per_pixel: 500,
-        max_depth: 50,
-    };
-
-    // World
-    let world = random_scene();
     let world = BvhNode::new(&world.objects());
 
     // Camera
-    let lookfrom = Point3::new(13.0, 2.0, 3.0);
-    let lookat = Point3::new(0.0, 0.0, 0.0);
-    let vup = Point3::new(0.0, 1.0, 0.0);
-    let dist_to_focus = 10.0;
-    let aperture = 0.1;
-
     let cam = Camera::new(
-        lookfrom,
-        lookat,
-        vup,
+        Point3::new(13.0, 2.0, 3.0),
+        Point3::new(0.0, 0.0, 0.0),
+        Vec3::new(0.0, 1.0, 0.0),
         20.0,
         ASPECT_RATIO,
-        aperture,
-        dist_to_focus,
+        0.1,
+        10.0,
     );
 
-    cam.render(&world, &_small_render);
-    //cam.render(&world, &_copy_render);
-    //cam.render(&world, &_big_render);
+    cam.render(&world, render);
+}
+
+fn checkered_spheres(render: &Render) {
+    // World
+    let mut world = HittableList::new();
+
+    let checker = Texture::CheckerTexture {
+        scale: 0.32,
+        even: Box::new(Colour::new(0.2, 0.3, 0.1).into()),
+        odd: Box::new(Colour::new(0.9, 0.9, 0.9).into()),
+    };
+
+    world.add(Arc::new(Sphere::stationary(
+        Point3::new(0.0, -10.0, 0.0),
+        10.0,
+        Material::Lambertian {
+            texture: checker.clone(),
+        },
+    )));
+
+    world.add(Arc::new(Sphere::stationary(
+        Point3::new(0.0, 10.0, 0.0),
+        10.0,
+        Material::Lambertian {
+            texture: checker.clone(),
+        },
+    )));
+
+    // Camera
+    let cam = Camera::new(
+        Point3::new(13.0, 2.0, 3.),
+        Point3::zero(),
+        Vec3::new(0.0, 1.0, 0.0),
+        20.0,
+        ASPECT_RATIO,
+        0.1,
+        10.0,
+    );
+
+    cam.render(&world, render);
+}
+
+const USAGE: &str = "Usage: ./ray-tracer <scene num> <LOW|MED|HIGH quality>";
+enum Quality {
+    Low,
+    Medium,
+    High,
+}
+
+fn main() {
+    let args: Vec<String> = env::args().collect();
+
+    if args.len() != 3 {
+        panic!("{}", USAGE)
+    }
+
+    let scene: i32 = args[1].parse().unwrap();
+    let quality: String = args[2].clone();
+
+    let render = match quality.to_lowercase().as_str() {
+        "low" => LOW_QUALITY_RENDER,
+        "med" => MEDIUM_QUALITY_RENDER,
+        "high" => HIGH_QUALITY_RENDER,
+        _ => panic!("{}", USAGE),
+    };
+
+    match scene {
+        1 => bouncing_spheres(&render),
+        2 => checkered_spheres(&render),
+        _ => panic!("Unsupported scene: {}", scene),
+    }
 }
