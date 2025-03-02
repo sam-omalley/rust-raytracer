@@ -12,8 +12,12 @@ impl Vec3 {
         Vec3 { e: [x, y, z] }
     }
 
+    pub fn fill(t: f64) -> Vec3 {
+        Vec3 { e: [t, t, t] }
+    }
+
     pub fn zero() -> Vec3 {
-        Vec3 { e: [0.0, 0.0, 0.0] }
+        Vec3::fill(0.0)
     }
 
     pub fn random() -> Vec3 {
@@ -171,6 +175,15 @@ impl Div<f64> for Vec3 {
 
     fn div(self, t: f64) -> Vec3 {
         Vec3::new(self.x() / t, self.y() / t, self.z() / t)
+    }
+}
+
+// f64 / Vec3
+impl Div<Vec3> for f64 {
+    type Output = Vec3;
+
+    fn div(self, v: Vec3) -> Vec3 {
+        Vec3::new(self / v.x(), self / v.y(), self / v.z())
     }
 }
 

@@ -72,10 +72,10 @@ impl Camera {
             .map(|index| {
                 {
                     let mut count = progress.lock().unwrap();
+                    *count += 1;
                     if (num_pixels - *count) % 1000 == 0 {
                         eprint!("\rScanlines remaining: {}", (num_pixels - *count));
                     }
-                    *count += 1;
                 }
 
                 let i = index % render.width;
