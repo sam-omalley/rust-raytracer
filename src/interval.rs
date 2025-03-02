@@ -13,8 +13,8 @@ impl Interval {
 
     pub fn combine(a: &Interval, b: &Interval) -> Self {
         Interval {
-            min: if a.min() <= b.min() {a.min()} else {b.min()},
-            max: if a.max() >= b.max() {a.max()} else {b.max()},
+            min: if a.min() <= b.min() { a.min() } else { b.min() },
+            max: if a.max() >= b.max() { a.max() } else { b.max() },
         }
     }
 
@@ -65,6 +65,16 @@ impl Interval {
         Interval {
             min: self.min - padding,
             max: self.max + padding,
+        }
+    }
+
+    pub fn clamp(&self, v: f64) -> f64 {
+        if v < self.min() {
+            self.min()
+        } else if v > self.max() {
+            self.max()
+        } else {
+            v
         }
     }
 }

@@ -193,3 +193,34 @@ pub fn checkered_spheres(render: &Render) {
 
     cam.render(&world, render);
 }
+
+pub fn earth(render: &Render) {
+    // World
+    let mut world = HittableList::new();
+
+    let earth_texture = Texture::ImageTexture {
+        image: texture::load_image("earthmap.jpg"),
+    };
+    let earth_surface = Material::Lambertian {
+        texture: earth_texture,
+    };
+
+    world.add(Arc::new(Sphere::stationary(
+        Point3::zero(),
+        2.0,
+        earth_surface,
+    )));
+
+    // Camera
+    let cam = Camera::new(
+        Point3::new(0.0, 0.0, 12.0),
+        Point3::zero(),
+        Vec3::new(0.0, 1.0, 0.0),
+        20.0,
+        ASPECT_RATIO,
+        0.1,
+        10.0,
+    );
+
+    cam.render(&world, render);
+}
