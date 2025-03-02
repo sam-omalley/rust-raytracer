@@ -17,12 +17,12 @@ pub enum Texture {
     SolidColour {
         albedo: Colour,
     },
-    CheckerTexture {
+    Checker {
         scale: Vec3,
         even: Box<Texture>,
         odd: Box<Texture>,
     },
-    ImageTexture {
+    Image {
         image: RgbImage,
     },
 }
@@ -37,7 +37,7 @@ impl Texture {
     pub fn colour(&self, u: f64, v: f64, p: Point3) -> Colour {
         match self {
             Texture::SolidColour { albedo } => *albedo,
-            Texture::CheckerTexture { scale, even, odd } => {
+            Texture::Checker { scale, even, odd } => {
                 let inv_scale = 1.0 / *scale;
                 let x = f64::floor(inv_scale.x() * p.x()) as i32;
                 let y = f64::floor(inv_scale.y() * p.y()) as i32;
@@ -51,7 +51,7 @@ impl Texture {
                     odd.colour(u, v, p)
                 }
             }
-            Texture::ImageTexture { image } => {
+            Texture::Image { image } => {
                 let u = u.clamp(0.0, 1.0);
                 let v = v.clamp(0.0, 1.0);
 
