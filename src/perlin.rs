@@ -36,6 +36,10 @@ impl Perlin {
         let v = p.y() - f64::floor(p.y());
         let w = p.z() - f64::floor(p.z());
 
+        let u = u * u * (3.0 - 2.0 * u);
+        let v = v * v * (3.0 - 2.0 * v);
+        let w = w * w * (3.0 - 2.0 * w);
+
         let i = f64::floor(p.x()) as i32;
         let j = f64::floor(p.y()) as i32;
         let k = f64::floor(p.z()) as i32;
@@ -53,7 +57,7 @@ impl Perlin {
             }
         }
 
-        Self::trilinear_interp(c, u, v, w)
+        Self::trilinear_interp(&c, u, v, w)
     }
 
     fn perlin_generate_perm(p: &mut [i32; POINT_COUNT]) {
@@ -75,7 +79,7 @@ impl Perlin {
     }
 
     #[allow(clippy::needless_range_loop)]
-    fn trilinear_interp(c: [[[f64; 2]; 2]; 2], u: f64, v: f64, w: f64) -> f64 {
+    fn trilinear_interp(c: &[[[f64; 2]; 2]; 2], u: f64, v: f64, w: f64) -> f64 {
         let mut accum = 0.0;
         for i in 0..2 {
             for j in 0..2 {
