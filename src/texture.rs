@@ -82,7 +82,9 @@ impl Texture {
                     colour_scale * pixel.0[2] as f64,
                 )
             }
-            Texture::Noise { noise, scale } => Colour::fill(1.0) * noise.noise(*scale * p),
+            Texture::Noise { noise, scale } => {
+                Colour::fill(1.0) * 0.5 * (1.0 + noise.noise(*scale * p))
+            }
         }
     }
 }
