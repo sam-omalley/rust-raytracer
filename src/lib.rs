@@ -233,6 +233,7 @@ pub fn perlin_spheres(render: &Render) {
 
     let perlin_texture = Texture::Noise {
         noise: Box::new(Perlin::new()),
+        scale: 4.0,
     };
 
     world.add(Arc::new(Sphere::stationary(

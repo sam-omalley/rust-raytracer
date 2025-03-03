@@ -28,6 +28,7 @@ pub enum Texture {
     },
     Noise {
         noise: Box<Perlin>,
+        scale: f64,
     },
 }
 
@@ -81,7 +82,7 @@ impl Texture {
                     colour_scale * pixel.0[2] as f64,
                 )
             }
-            Texture::Noise { noise } => Colour::fill(1.0) * noise.noise(p),
+            Texture::Noise { noise, scale } => Colour::fill(1.0) * noise.noise(*scale * p),
         }
     }
 }
