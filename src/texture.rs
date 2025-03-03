@@ -1,4 +1,5 @@
 use crate::colour::Colour;
+use crate::perlin::Perlin;
 use crate::vec3::{Point3, Vec3};
 
 use image::{Pixel, RgbImage};
@@ -24,6 +25,9 @@ pub enum Texture {
     },
     Image {
         image: RgbImage,
+    },
+    Noise {
+        noise: Box<Perlin>,
     },
 }
 
@@ -77,6 +81,7 @@ impl Texture {
                     colour_scale * pixel.0[2] as f64,
                 )
             }
+            Texture::Noise { noise } => Colour::fill(1.0) * noise.noise(p),
         }
     }
 }

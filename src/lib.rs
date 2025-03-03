@@ -9,6 +9,7 @@ mod hittable;
 mod hittable_list;
 mod interval;
 mod material;
+mod perlin;
 mod ray;
 pub mod sphere;
 mod texture;
@@ -19,6 +20,7 @@ use camera::{Camera, Render};
 use colour::Colour;
 use hittable_list::HittableList;
 use material::Material;
+use perlin::Perlin;
 use sphere::Sphere;
 use texture::Texture;
 use vec3::{Point3, Vec3};
@@ -214,6 +216,44 @@ pub fn earth(render: &Render) {
     // Camera
     let cam = Camera::new(
         Point3::new(0.0, 0.0, 12.0),
+        Point3::zero(),
+        Vec3::new(0.0, 1.0, 0.0),
+        20.0,
+        ASPECT_RATIO,
+        0.1,
+        10.0,
+    );
+
+    cam.render(&world, render);
+}
+
+pub fn perlin_spheres(render: &Render) {
+    // World
+    let mut world = HittableList::new();
+
+    let perlin_texture = Texture::Noise {
+        noise: Box::new(Perlin::new()),
+    };
+
+    world.add(Arc::new(Sphere::stationary(
+        Point3::new(0.0, -1000.0, 0.0),
+        1000.0,
+        Material::Lambertian {
+            texture: perlin_texture.clone(),
+        },
+    )));
+
+    world.add(Arc::new(Sphere::stationary(
+        Point3::new(0.0, 2.0, 0.0),
+        2.0,
+        Material::Lambertian {
+            texture: perlin_texture.clone(),
+        },
+    )));
+
+    // Camera
+    let cam = Camera::new(
+        Point3::new(13.0, 2.0, 3.0),
         Point3::zero(),
         Vec3::new(0.0, 1.0, 0.0),
         20.0,

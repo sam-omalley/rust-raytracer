@@ -24,6 +24,7 @@ fn main() {
         1 => bouncing_spheres(&render),
         2 => checkered_spheres(&render),
         3 => earth(&render),
+        4 => perlin_spheres(&render),
         _ => panic!("Unsupported scene: {}", scene),
     }
 }
