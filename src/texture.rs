@@ -83,7 +83,7 @@ impl Texture {
                 )
             }
             Texture::Noise { noise, scale } => {
-                Colour::fill(1.0) * 0.5 * (1.0 + noise.noise(*scale * p))
+                Colour::fill(0.5) * (1.0 + f64::sin(scale * p.z() + 10.0 * noise.turb(p, 7)))
             }
         }
     }

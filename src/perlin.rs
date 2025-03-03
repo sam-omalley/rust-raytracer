@@ -1,5 +1,5 @@
 use crate::common;
-use crate::vec3::{Point3, Vec3, dot};
+use crate::vec3::{Point3, Vec3, dot, random_unit_vector};
 
 const POINT_COUNT: usize = 256;
 
@@ -21,7 +21,7 @@ impl Perlin {
         };
 
         for val in p.randvec.iter_mut() {
-            *val = Vec3::random_range(-1.0, 1.0);
+            *val = random_unit_vector();
         }
 
         Self::perlin_generate_perm(&mut p.perm_x);
@@ -54,6 +54,20 @@ impl Perlin {
         }
 
         Self::perlin_interp(&c, u, v, w)
+    }
+
+    pub fn turb(&self, p: Point3, depth: i32) -> f64 {
+        let mut accum = 0.0;
+        let mut temp_p = p;
+        let mut weight = 1.0;
+
+        for _ in 0..depth {
+            accum += weight * self.noise(temp_p);
+            weight *= 0.5;
+            temp_p *= 2.0;
+        }
+
+        f64::abs(accum)
     }
 
     fn perlin_generate_perm(p: &mut [i32; POINT_COUNT]) {
