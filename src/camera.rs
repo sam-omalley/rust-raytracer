@@ -10,7 +10,6 @@ use std::sync::Mutex;
 
 pub struct Render {
     pub width: i32,
-    pub height: i32,
     pub samples_per_pixel: i32,
     pub max_depth: i32,
 }
@@ -20,6 +19,7 @@ pub struct Camera {
     lower_left_corner: Point3,
     horizontal: Vec3,
     vertical: Vec3,
+    aspect_ratio: f64,
     u: Vec3,
     v: Vec3,
     lens_radius: f64,
@@ -56,6 +56,7 @@ impl Camera {
             lower_left_corner,
             horizontal,
             vertical,
+            aspect_ratio,
             u,
             v,
             lens_radius,
@@ -65,7 +66,8 @@ impl Camera {
     pub fn render(&self, world: &dyn Hittable, render: &Render) {
         let progress = Mutex::new(0);
 
-        let num_pixels = render.width * render.height;
+        let height = (render.width as f64 / self.aspect_ratio) as i32;
+        let num_pixels = render.width * height;
 
         let pixels: Vec<(u8, u8, u8)> = (0..num_pixels)
             .into_par_iter()
@@ -79,12 +81,12 @@ impl Camera {
                 }
 
                 let i = index % render.width;
-                let j = render.height - (index / render.width) - 1;
+                let j = height - (index / render.width) - 1;
 
                 let mut pixel_colour = Colour::new(0.0, 0.0, 0.0);
                 for _ in 0..render.samples_per_pixel {
                     let u = (i as f64 + common::random_double()) / (render.width - 1) as f64;
-                    let v = (j as f64 + common::random_double()) / (render.height - 1) as f64;
+                    let v = (j as f64 + common::random_double()) / (height - 1) as f64;
                     let r = self.get_ray(u, v);
                     pixel_colour += Self::ray_colour(&r, world, render.max_depth);
                 }
@@ -94,7 +96,7 @@ impl Camera {
 
         // Render
         println!("P3");
-        println!("{} {}", render.width, render.height);
+        println!("{} {}", render.width, height);
         println!("255");
         for (r, g, b) in pixels {
             println!("{} {} {}", r, g, b);

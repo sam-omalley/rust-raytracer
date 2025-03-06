@@ -22,6 +22,7 @@ use colour::Colour;
 use hittable_list::HittableList;
 use material::Material;
 use perlin::Perlin;
+use quad::Quad;
 use sphere::Sphere;
 use texture::Texture;
 use vec3::{Point3, Vec3};
@@ -30,24 +31,22 @@ use std::sync::Arc;
 
 // Image
 const ASPECT_RATIO: f64 = 16.0 / 9.0;
+const SQUARE_ASPECT_RATIO: f64 = 1.0;
 
 pub const LOW_QUALITY_RENDER: Render = Render {
     width: 640,
-    height: 360,
     samples_per_pixel: 50,
     max_depth: 50,
 };
 
 pub const MEDIUM_QUALITY_RENDER: Render = Render {
     width: 1820,
-    height: 1024,
     samples_per_pixel: 100,
     max_depth: 50,
 };
 
 pub const HIGH_QUALITY_RENDER: Render = Render {
     width: 1920,
-    height: 1080,
     samples_per_pixel: 500,
     max_depth: 50,
 };
@@ -260,6 +259,73 @@ pub fn perlin_spheres(render: &Render) {
         Vec3::new(0.0, 1.0, 0.0),
         20.0,
         ASPECT_RATIO,
+        0.1,
+        10.0,
+    );
+
+    cam.render(&world, render);
+}
+
+pub fn quads(render: &Render) {
+    // World
+    let mut world = HittableList::new();
+
+    // Materials
+    let left_red = Material::Lambertian {
+        texture: Colour::new(1.0, 0.2, 0.2).into(),
+    };
+    let back_green = Material::Lambertian {
+        texture: Colour::new(0.2, 1.0, 0.2).into(),
+    };
+    let right_blue = Material::Lambertian {
+        texture: Colour::new(0.2, 0.2, 1.0).into(),
+    };
+    let upper_orange = Material::Lambertian {
+        texture: Colour::new(1.0, 0.5, 0.0).into(),
+    };
+    let lower_teal = Material::Lambertian {
+        texture: Colour::new(0.2, 0.8, 0.8).into(),
+    };
+
+    // Quads
+    world.add(Arc::new(Quad::new(
+        Point3::new(-3.0, -2.0, 5.0),
+        Vec3::new(0.0, 0.0, -4.0),
+        Vec3::new(0.0, 4.0, 0.0),
+        left_red,
+    )));
+    world.add(Arc::new(Quad::new(
+        Point3::new(-2.0, -2.0, 0.0),
+        Vec3::new(4.0, 0.0, 0.0),
+        Vec3::new(0.0, 4.0, 0.0),
+        back_green,
+    )));
+    world.add(Arc::new(Quad::new(
+        Point3::new(3.0, -2.0, 1.0),
+        Vec3::new(0.0, 0.0, 4.0),
+        Vec3::new(0.0, 4.0, 0.0),
+        right_blue,
+    )));
+    world.add(Arc::new(Quad::new(
+        Point3::new(-2.0, 3.0, 1.0),
+        Vec3::new(4.0, 0.0, 0.0),
+        Vec3::new(0.0, 0.0, 4.0),
+        upper_orange,
+    )));
+    world.add(Arc::new(Quad::new(
+        Point3::new(-2.0, -3.0, 5.0),
+        Vec3::new(4.0, 0.0, 0.0),
+        Vec3::new(0.0, 0.0, -4.0),
+        lower_teal,
+    )));
+
+    // Camera
+    let cam = Camera::new(
+        Point3::new(0.0, 0.0, 9.0),
+        Point3::zero(),
+        Vec3::new(0.0, 1.0, 0.0),
+        80.0,
+        SQUARE_ASPECT_RATIO,
         0.1,
         10.0,
     );
