@@ -23,6 +23,7 @@ pub struct Camera {
     u: Vec3,
     v: Vec3,
     lens_radius: f64,
+    background: Colour,
 }
 
 impl Camera {
@@ -34,6 +35,7 @@ impl Camera {
         aspect_ratio: f64,
         aperture: f64,
         focus_distance: f64,
+        background: Colour,
     ) -> Camera {
         let theta = common::degrees_to_radians(vfov);
         let h = f64::tan(theta / 2.0);
@@ -60,6 +62,7 @@ impl Camera {
             u,
             v,
             lens_radius,
+            background,
         }
     }
 
@@ -88,7 +91,7 @@ impl Camera {
                     let u = (i as f64 + common::random_double()) / (render.width - 1) as f64;
                     let v = (j as f64 + common::random_double()) / (height - 1) as f64;
                     let r = self.get_ray(u, v);
-                    pixel_colour += Self::ray_colour(&r, world, render.max_depth);
+                    pixel_colour += self.ray_colour(&r, world, render.max_depth);
                 }
                 colour::get_output_colour(pixel_colour, render.samples_per_pixel)
             })
@@ -117,23 +120,24 @@ impl Camera {
         )
     }
 
-    fn ray_colour(r: &Ray, world: &dyn Hittable, depth: i32) -> Colour {
+    fn ray_colour(&self, r: &Ray, world: &dyn Hittable, depth: i32) -> Colour {
         if depth <= 0 {
             return Colour::new(0.0, 0.0, 0.0);
         }
 
         match world.hit(r, Interval::new(0.001, common::INFINITY)) {
-            Some((hit_record, material)) => match material.scatter(r, &hit_record) {
-                Some((attenuation, scattered)) => {
-                    attenuation * Self::ray_colour(&scattered, world, depth - 1)
+            Some((hit_record, material)) => {
+                let emission_colour = material.emitted(hit_record.u, hit_record.v, hit_record.p);
+                match material.scatter(r, &hit_record) {
+                    Some((attenuation, scattered)) => {
+                        let scatter_colour =
+                            attenuation * self.ray_colour(&scattered, world, depth - 1);
+                        emission_colour + scatter_colour
+                    }
+                    None => emission_colour,
                 }
-                None => Colour::new(0.0, 0.0, 0.0),
-            },
-            None => {
-                let unit_direction = vec3::unit_vector(r.direction());
-                let t = 0.5 * (unit_direction.y() + 1.0);
-                (1.0 - t) * Colour::new(1.0, 1.0, 1.0) + t * Colour::new(0.5, 0.7, 1.0)
             }
+            None => self.background,
         }
     }
 }

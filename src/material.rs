@@ -8,6 +8,7 @@ pub enum Material {
     Lambertian { texture: Texture },
     Metal { albedo: Colour, fuzziness: f64 },
     Dialectric { refraction: f64 },
+    DiffuseLight { texture: Texture },
 }
 
 fn reflectance(cosine: f64, ref_idx: f64) -> f64 {
@@ -72,6 +73,14 @@ impl Material {
                     Ray::new_at(rec.p, direction, r_in.time()),
                 ))
             }
+            Material::DiffuseLight { texture: _ } => None,
+        }
+    }
+
+    pub fn emitted(&self, u: f64, v: f64, p: vec3::Point3) -> Colour {
+        match self {
+            Material::DiffuseLight { texture } => texture.colour(u, v, p),
+            _ => Colour::zero(),
         }
     }
 }
