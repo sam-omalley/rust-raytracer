@@ -9,6 +9,7 @@ pub struct Quad {
     q: Point3,
     u: Vec3,
     v: Vec3,
+    w: Vec3,
     material: Material,
     bbox: Aabb,
     normal: Vec3,
@@ -20,11 +21,13 @@ impl Quad {
         let n = cross(u, v);
         let normal = unit_vector(n);
         let d = dot(normal, q);
+        let w = n / dot(n, n);
 
         Quad {
             q,
             u,
             v,
+            w,
             material,
             bbox: Self::calc_bounding_box(q, u, v),
             normal,
@@ -36,6 +39,18 @@ impl Quad {
         let bbox_diagonal1 = Aabb::new(q, q + u + v);
         let bbox_diagonal2 = Aabb::new(q + u, q + v);
         Aabb::combine(&bbox_diagonal1, &bbox_diagonal2)
+    }
+
+    fn is_interior(a: f64, b: f64) -> Option<(f64, f64)> {
+        let unit_interval = Interval::new(0.0, 1.0);
+
+        // Given the hit point in plane coordinates, return None if it is
+        // outside the primitive, otherwise return the UV coordinates.
+        if !unit_interval.contains(a) || !unit_interval.contains(b) {
+            return None;
+        }
+
+        Some((a, b))
     }
 }
 
@@ -52,14 +67,23 @@ impl Hittable for Quad {
             return None;
         }
 
+        // Determine if the hit point lies within the planar shape using its plane coordinates.
         let intersection = r.at(t);
+        let planar_hitpt_vector = intersection - self.q;
+        let alpha = dot(self.w, cross(planar_hitpt_vector, self.v));
+        let beta = dot(self.w, cross(self.u, planar_hitpt_vector));
 
-        let mut rec = HitRecord::new();
-        rec.t = t;
-        rec.p = intersection;
-        rec.set_face_normal(r, self.normal);
+        if let Some((u, v)) = Self::is_interior(alpha, beta) {
+            let mut rec = HitRecord::new();
+            rec.u = u;
+            rec.v = v;
+            rec.t = t;
+            rec.p = intersection;
+            rec.set_face_normal(r, self.normal);
 
-        Some((rec, &self.material))
+            return Some((rec, &self.material))
+        }
+        None
     }
 
     fn bounding_box(&self) -> &Aabb {
