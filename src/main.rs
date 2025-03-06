@@ -26,6 +26,8 @@ fn main() {
         3 => earth(&render),
         4 => perlin_spheres(&render),
         5 => quads(&render),
+        6 => simple_light(&render),
+        7 => cornell_box(&render),
         _ => panic!("Unsupported scene: {}", scene),
     }
 }
