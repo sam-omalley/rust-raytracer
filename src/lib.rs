@@ -151,6 +151,7 @@ pub fn bouncing_spheres(render: &Render) {
         ASPECT_RATIO,
         0.1,
         10.0,
+        Colour::new(0.7, 0.8, 1.0),
     );
 
     cam.render(&world, render);
@@ -191,6 +192,7 @@ pub fn checkered_spheres(render: &Render) {
         ASPECT_RATIO,
         0.1,
         10.0,
+        Colour::new(0.7, 0.8, 1.0),
     );
 
     cam.render(&world, render);
@@ -222,6 +224,7 @@ pub fn earth(render: &Render) {
         ASPECT_RATIO,
         0.1,
         10.0,
+        Colour::new(0.7, 0.8, 1.0),
     );
 
     cam.render(&world, render);
@@ -261,6 +264,7 @@ pub fn perlin_spheres(render: &Render) {
         ASPECT_RATIO,
         0.1,
         10.0,
+        Colour::new(0.7, 0.8, 1.0),
     );
 
     cam.render(&world, render);
@@ -328,6 +332,7 @@ pub fn quads(render: &Render) {
         SQUARE_ASPECT_RATIO,
         0.1,
         10.0,
+        Colour::new(0.7, 0.8, 1.0),
     );
 
     cam.render(&world, render);
