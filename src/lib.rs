@@ -10,6 +10,7 @@ mod hittable_list;
 mod interval;
 mod material;
 mod perlin;
+mod quad;
 mod ray;
 pub mod sphere;
 mod texture;
