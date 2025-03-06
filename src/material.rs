@@ -4,6 +4,7 @@ use crate::ray::Ray;
 use crate::texture::Texture;
 use crate::{common, vec3};
 
+#[derive(Clone)]
 pub enum Material {
     Lambertian { texture: Texture },
     Metal { albedo: Colour, fuzziness: f64 },

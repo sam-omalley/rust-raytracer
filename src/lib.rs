@@ -337,3 +337,132 @@ pub fn quads(render: &Render) {
 
     cam.render(&world, render);
 }
+
+pub fn simple_light(render: &Render) {
+    // World
+    let mut world = HittableList::new();
+
+    let perlin_texture = Texture::Noise {
+        noise: Box::new(Perlin::new()),
+        scale: 4.0,
+    };
+
+    world.add(Arc::new(Sphere::stationary(
+        Point3::new(0.0, -1000.0, 0.0),
+        1000.0,
+        Material::Lambertian {
+            texture: perlin_texture.clone(),
+        },
+    )));
+
+    world.add(Arc::new(Sphere::stationary(
+        Point3::new(0.0, 2.0, 0.0),
+        2.0,
+        Material::Lambertian {
+            texture: perlin_texture.clone(),
+        },
+    )));
+
+    let difflight = Material::DiffuseLight {
+        texture: Colour::new(4.0, 4.0, 4.0).into(),
+    };
+    world.add(Arc::new(Sphere::stationary(
+        Point3::new(0.0, 7.0, 0.0),
+        2.0,
+        difflight.clone(),
+    )));
+    world.add(Arc::new(Quad::new(
+        Point3::new(3.0, 1.0, -2.0),
+        Vec3::new(2.0, 0.0, 0.0),
+        Vec3::new(0.0, 2.0, 0.0),
+        difflight.clone(),
+    )));
+
+    // Camera
+    let cam = Camera::new(
+        Point3::new(26.0, 3.0, 6.0),
+        Point3::new(0.0, 2.0, 0.0),
+        Vec3::new(0.0, 1.0, 0.0),
+        20.0,
+        ASPECT_RATIO,
+        0.1,
+        (Point3::new(26.0, 3.0, 6.0) - Point3::new(0.0, 2.0, 0.0)).length(),
+        Colour::zero(),
+    );
+
+    cam.render(&world, render);
+}
+
+pub fn cornell_box(render: &Render) {
+    // World
+    let mut world = HittableList::new();
+
+    let red = Material::Lambertian {
+        texture: Colour::new(0.65, 0.05, 0.05).into(),
+    };
+    let white = Material::Lambertian {
+        texture: Colour::fill(0.73).into(),
+    };
+    let green = Material::Lambertian {
+        texture: Colour::new(0.12, 0.45, 0.15).into(),
+    };
+    let light = Material::DiffuseLight {
+        texture: Colour::fill(15.0).into(),
+    };
+
+    world.add(Arc::new(Quad::new(
+        Point3::new(555.0, 0.0, 0.0),
+        Vec3::new(0.0, 555.0, 0.0),
+        Vec3::new(0.0, 0.0, 555.0),
+        green,
+    )));
+
+    world.add(Arc::new(Quad::new(
+        Point3::zero(),
+        Vec3::new(0.0, 555.0, 0.0),
+        Vec3::new(0.0, 0.0, 555.0),
+        red,
+    )));
+
+    world.add(Arc::new(Quad::new(
+        Point3::new(343.0, 554.0, 332.0),
+        Vec3::new(-130.0, 0.0, 0.0),
+        Vec3::new(0.0, 0.0, -105.0),
+        light.clone(),
+    )));
+
+    world.add(Arc::new(Quad::new(
+        Point3::zero(),
+        Vec3::new(555.0, 0.0, 0.0),
+        Vec3::new(0.0, 0.0, 555.0),
+        white.clone(),
+    )));
+
+    world.add(Arc::new(Quad::new(
+        Point3::fill(555.0),
+        Vec3::new(-555.0, 0.0, 0.0),
+        Vec3::new(0.0, 0.0, -555.0),
+        white.clone(),
+    )));
+
+    world.add(Arc::new(Quad::new(
+        Point3::new(0.0, 0.0, 555.0),
+        Vec3::new(555.0, 0.0, 0.0),
+        Vec3::new(0.0, 555.0, 0.0),
+        white.clone(),
+    )));
+
+    // Camera
+    let cam = Camera::new(
+        Point3::new(278.0, 278.0, -800.0),
+        Point3::new(278.0, 278.0, 0.0),
+        Vec3::new(0.0, 1.0, 0.0),
+        40.0,
+        SQUARE_ASPECT_RATIO,
+        0.1,
+        (Point3::new(278.0, 278.0, -800.0) - Point3::new(278.0, 278.0, 0.0)).length(),
+        Colour::zero(),
+    );
+
+    cam.render(&world, render);
+}
