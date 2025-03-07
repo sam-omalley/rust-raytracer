@@ -12,7 +12,7 @@ impl Vec3 {
         Self { e: [x, y, z] }
     }
 
-    pub fn new_i32(x: i32, y: i32, z: i32) -> Self {
+    pub fn newi(x: i32, y: i32, z: i32) -> Self {
         Self {
             e: [x as f64, y as f64, z as f64],
         }
