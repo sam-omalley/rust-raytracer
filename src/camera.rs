@@ -26,6 +26,7 @@ pub struct Camera {
     background: Colour,
 }
 
+#[allow(clippy::too_many_arguments)]
 impl Camera {
     pub fn new(
         lookfrom: Point3,

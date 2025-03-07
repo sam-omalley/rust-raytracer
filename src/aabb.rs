@@ -1,7 +1,9 @@
 use crate::common;
 use crate::interval::Interval;
 use crate::ray::Ray;
-use crate::vec3::Point3;
+use crate::vec3::{Point3, Vec3};
+
+use std::ops::Add;
 
 #[derive(Default, Clone)]
 pub struct Aabb {
@@ -113,5 +115,23 @@ impl Aabb {
         }
 
         true
+    }
+}
+
+impl Add<Vec3> for Aabb {
+    type Output = Aabb;
+
+    fn add(self, offset: Vec3) -> Aabb {
+        let min = self.min() + offset;
+        let max = self.max() + offset;
+        Aabb::new(min, max)
+    }
+}
+
+impl Add<Aabb> for Vec3 {
+    type Output = Aabb;
+
+    fn add(self, bbox: Aabb) -> Aabb {
+        bbox + self
     }
 }

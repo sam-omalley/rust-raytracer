@@ -14,6 +14,7 @@ mod quad;
 mod ray;
 pub mod sphere;
 mod texture;
+mod translate;
 pub mod vec3;
 
 use bvh_node::BvhNode;
