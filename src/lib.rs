@@ -5,6 +5,7 @@ mod bvh_node;
 mod camera;
 mod colour;
 mod common;
+mod constant_medium;
 mod hittable;
 mod hittable_list;
 mod interval;
