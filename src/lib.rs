@@ -12,6 +12,7 @@ mod material;
 mod perlin;
 mod quad;
 mod ray;
+mod rotate_y;
 pub mod sphere;
 mod texture;
 mod translate;
@@ -24,8 +25,10 @@ use hittable_list::HittableList;
 use material::Material;
 use perlin::Perlin;
 use quad::{Quad, quad_box};
+use rotate_y::RotateY;
 use sphere::Sphere;
 use texture::Texture;
+use translate::Translate;
 use vec3::{Point3, Vec3};
 
 use std::sync::Arc;
@@ -453,16 +456,19 @@ pub fn cornell_box(render: &Render) {
         white.clone(),
     )));
 
-    world.add(Arc::new(quad_box(
-        Point3::new_i32(130, 0, 65),
-        Point3::new_i32(295, 165, 230),
+    let box1 = Arc::new(quad_box(
+        Point3::zero(),
+        Point3::new_i32(165, 330, 165),
         white.clone(),
-    )));
-    world.add(Arc::new(quad_box(
-        Point3::new_i32(265, 0, 295),
-        Point3::new_i32(430, 330, 460),
-        white.clone(),
-    )));
+    ));
+    let box1 = Arc::new(RotateY::new(box1, 15.0));
+    let box1 = Arc::new(Translate::new(box1, Vec3::new_i32(265, 0, 200)));
+    world.add(box1);
+
+    let box2 = Arc::new(quad_box(Point3::zero(), Point3::fill(165.0), white.clone()));
+    let box2 = Arc::new(RotateY::new(box2, -18.0));
+    let box2 = Arc::new(Translate::new(box2, Vec3::new_i32(130, 0, 65)));
+    world.add(box2);
 
     // Camera
     let cam = Camera::new(
