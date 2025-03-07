@@ -57,7 +57,7 @@ impl Hittable for ConstantMedium {
         let mut rec = HitRecord::new();
         rec.t = rec1.t + hit_distance / ray_length;
         rec.p = r.at(rec.t);
-        rec.set_face_normal(r, Vec3::new_i32(1, 0, 0));
+        rec.set_face_normal(r, Vec3::newi(1, 0, 0));
 
         Some((rec, &self.phase_function))
     }

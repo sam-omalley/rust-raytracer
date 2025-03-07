@@ -477,16 +477,16 @@ pub fn cornell_box(render: &Render) {
 
     let box1 = Arc::new(quad_box(
         Point3::zero(),
-        Point3::new_i32(165, 330, 165),
+        Point3::newi(165, 330, 165),
         white.clone(),
     ));
     let box1 = Arc::new(RotateY::new(box1, 15.0));
-    let box1 = Arc::new(Translate::new(box1, Vec3::new_i32(265, 0, 200)));
+    let box1 = Arc::new(Translate::new(box1, Vec3::newi(265, 0, 200)));
     world.add(box1);
 
     let box2 = Arc::new(quad_box(Point3::zero(), Point3::fill(165.0), white.clone()));
     let box2 = Arc::new(RotateY::new(box2, -18.0));
-    let box2 = Arc::new(Translate::new(box2, Vec3::new_i32(130, 0, 65)));
+    let box2 = Arc::new(Translate::new(box2, Vec3::newi(130, 0, 65)));
     world.add(box2);
     let world = BvhNode::new(&world.objects());
 
@@ -523,54 +523,54 @@ pub fn cornell_smoke(render: &Render) {
     };
 
     world.add(Arc::new(Quad::new(
-        Point3::new_i32(555, 0, 0),
-        Vec3::new_i32(0, 555, 0),
-        Vec3::new_i32(0, 0, 555),
+        Point3::newi(555, 0, 0),
+        Vec3::newi(0, 555, 0),
+        Vec3::newi(0, 0, 555),
         green,
     )));
 
     world.add(Arc::new(Quad::new(
         Point3::zero(),
-        Vec3::new_i32(0, 555, 0),
-        Vec3::new_i32(0, 0, 555),
+        Vec3::newi(0, 555, 0),
+        Vec3::newi(0, 0, 555),
         red,
     )));
 
     world.add(Arc::new(Quad::new(
-        Point3::new_i32(113, 554, 127),
-        Vec3::new_i32(330, 0, 0),
-        Vec3::new_i32(0, 0, 305),
+        Point3::newi(113, 554, 127),
+        Vec3::newi(330, 0, 0),
+        Vec3::newi(0, 0, 305),
         light.clone(),
     )));
 
     world.add(Arc::new(Quad::new(
-        Point3::new_i32(0, 555, 0),
-        Vec3::new_i32(555, 0, 0),
-        Vec3::new_i32(0, 0, 555),
+        Point3::newi(0, 555, 0),
+        Vec3::newi(555, 0, 0),
+        Vec3::newi(0, 0, 555),
         white.clone(),
     )));
 
     world.add(Arc::new(Quad::new(
         Point3::zero(),
-        Vec3::new_i32(555, 0, 0),
-        Vec3::new_i32(0, 0, 555),
+        Vec3::newi(555, 0, 0),
+        Vec3::newi(0, 0, 555),
         white.clone(),
     )));
 
     world.add(Arc::new(Quad::new(
-        Point3::new_i32(0, 0, 555),
-        Vec3::new_i32(555, 0, 0),
-        Vec3::new_i32(0, 555, 0),
+        Point3::newi(0, 0, 555),
+        Vec3::newi(555, 0, 0),
+        Vec3::newi(0, 555, 0),
         white.clone(),
     )));
 
     let box1 = Arc::new(quad_box(
         Point3::zero(),
-        Point3::new_i32(165, 330, 165),
+        Point3::newi(165, 330, 165),
         white.clone(),
     ));
     let box1 = Arc::new(RotateY::new(box1, 15.0));
-    let box1 = Arc::new(Translate::new(box1, Vec3::new_i32(265, 0, 295)));
+    let box1 = Arc::new(Translate::new(box1, Vec3::newi(265, 0, 295)));
     world.add(Arc::new(ConstantMedium::new(
         box1,
         0.01,
@@ -579,7 +579,7 @@ pub fn cornell_smoke(render: &Render) {
 
     let box2 = Arc::new(quad_box(Point3::zero(), Point3::fill(165.0), white.clone()));
     let box2 = Arc::new(RotateY::new(box2, -18.0));
-    let box2 = Arc::new(Translate::new(box2, Vec3::new_i32(130, 0, 65)));
+    let box2 = Arc::new(Translate::new(box2, Vec3::newi(130, 0, 65)));
     world.add(Arc::new(ConstantMedium::new(
         box2,
         0.01,
@@ -634,14 +634,14 @@ pub fn final_scene(render: &Render) {
         texture: Colour::fill(7.0).into(),
     };
     world.add(Arc::new(Quad::new(
-        Point3::new_i32(123, 553, 147),
-        Vec3::new_i32(300, 0, 0),
-        Vec3::new_i32(0, 0, 265),
+        Point3::newi(123, 553, 147),
+        Vec3::newi(300, 0, 0),
+        Vec3::newi(0, 0, 265),
         light.clone(),
     )));
 
-    let center1 = Point3::new_i32(400, 400, 200);
-    let center2 = center1 + Vec3::new_i32(30, 0, 0);
+    let center1 = Point3::newi(400, 400, 200);
+    let center2 = center1 + Vec3::newi(30, 0, 0);
     let sphere_material = Material::Lambertian {
         texture: Colour::new(0.7, 0.3, 0.1).into(),
     };
@@ -652,12 +652,12 @@ pub fn final_scene(render: &Render) {
     )));
 
     world.add(Arc::new(Sphere::stationary(
-        Point3::new_i32(260, 150, 45),
+        Point3::newi(260, 150, 45),
         50.0,
         Material::Dialectric { refraction: 1.5 },
     )));
     world.add(Arc::new(Sphere::stationary(
-        Point3::new_i32(0, 150, 145),
+        Point3::newi(0, 150, 145),
         50.0,
         Material::Metal {
             albedo: Colour::new(0.8, 0.8, 0.9),
@@ -666,7 +666,7 @@ pub fn final_scene(render: &Render) {
     )));
 
     let boundary = Arc::new(Sphere::stationary(
-        Point3::new_i32(360, 150, 145),
+        Point3::newi(360, 150, 145),
         70.0,
         Material::Dialectric { refraction: 1.5 },
     ));
@@ -693,7 +693,7 @@ pub fn final_scene(render: &Render) {
         },
     };
     world.add(Arc::new(Sphere::stationary(
-        Point3::new_i32(400, 200, 400),
+        Point3::newi(400, 200, 400),
         100.0,
         emat,
     )));
@@ -702,7 +702,7 @@ pub fn final_scene(render: &Render) {
         scale: 4.0,
     };
     world.add(Arc::new(Sphere::stationary(
-        Point3::new_i32(220, 280, 300),
+        Point3::newi(220, 280, 300),
         80.0,
         Material::Lambertian {
             texture: perlin_texture,
@@ -723,15 +723,15 @@ pub fn final_scene(render: &Render) {
     }
 
     let boxes2 = Arc::new(RotateY::new(Arc::new(boxes2), 15.0));
-    let boxes2 = Arc::new(Translate::new(boxes2, Vec3::new_i32(-100, 270, 395)));
+    let boxes2 = Arc::new(Translate::new(boxes2, Vec3::newi(-100, 270, 395)));
     world.add(boxes2);
 
     let world = BvhNode::new(&world.objects());
 
     // Camera
     let cam = Camera::new(
-        Point3::new_i32(478, 278, -600),
-        Point3::new_i32(278, 278, 0),
+        Point3::newi(478, 278, -600),
+        Point3::newi(278, 278, 0),
         Vec3::new(0.0, 1.0, 0.0),
         40.0,
         SQUARE_ASPECT_RATIO,
