@@ -71,7 +71,7 @@ impl Texture {
                 let mut j = f64::floor(v * image.height() as f64) as u32;
                 j %= image.height();
                 // Invert j
-                j = image.height() - j;
+                j = image.height() - j - 1;
 
                 let pixel = image.get_pixel(i, j).to_rgb();
                 let colour_scale = 1.0 / 255.0;
