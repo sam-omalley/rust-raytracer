@@ -28,6 +28,7 @@ fn main() {
         5 => quads(&render),
         6 => simple_light(&render),
         7 => cornell_box(&render),
+        8 => cornell_smoke(&render),
         _ => panic!("Unsupported scene: {}", scene),
     }
 }
