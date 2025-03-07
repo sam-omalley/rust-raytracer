@@ -22,6 +22,7 @@ pub mod vec3;
 use bvh_node::BvhNode;
 use camera::{Camera, Render};
 use colour::Colour;
+use constant_medium::ConstantMedium;
 use hittable_list::HittableList;
 use material::Material;
 use perlin::Perlin;
@@ -470,6 +471,102 @@ pub fn cornell_box(render: &Render) {
     let box2 = Arc::new(RotateY::new(box2, -18.0));
     let box2 = Arc::new(Translate::new(box2, Vec3::new_i32(130, 0, 65)));
     world.add(box2);
+
+    // Camera
+    let cam = Camera::new(
+        Point3::new(278.0, 278.0, -800.0),
+        Point3::new(278.0, 278.0, 0.0),
+        Vec3::new(0.0, 1.0, 0.0),
+        40.0,
+        SQUARE_ASPECT_RATIO,
+        0.1,
+        (Point3::new(278.0, 278.0, -800.0) - Point3::new(278.0, 278.0, 0.0)).length(),
+        Colour::zero(),
+    );
+
+    cam.render(&world, render);
+}
+
+pub fn cornell_smoke(render: &Render) {
+    // World
+    let mut world = HittableList::new();
+
+    let red = Material::Lambertian {
+        texture: Colour::new(0.65, 0.05, 0.05).into(),
+    };
+    let white = Material::Lambertian {
+        texture: Colour::fill(0.73).into(),
+    };
+    let green = Material::Lambertian {
+        texture: Colour::new(0.12, 0.45, 0.15).into(),
+    };
+    let light = Material::DiffuseLight {
+        texture: Colour::fill(7.0).into(),
+    };
+
+    world.add(Arc::new(Quad::new(
+        Point3::new_i32(555, 0, 0),
+        Vec3::new_i32(0, 555, 0),
+        Vec3::new_i32(0, 0, 555),
+        green,
+    )));
+
+    world.add(Arc::new(Quad::new(
+        Point3::zero(),
+        Vec3::new_i32(0, 555, 0),
+        Vec3::new_i32(0, 0, 555),
+        red,
+    )));
+
+    world.add(Arc::new(Quad::new(
+        Point3::new_i32(113, 554, 127),
+        Vec3::new_i32(330, 0, 0),
+        Vec3::new_i32(0, 0, 305),
+        light.clone(),
+    )));
+
+    world.add(Arc::new(Quad::new(
+        Point3::new_i32(0, 555, 0),
+        Vec3::new_i32(555, 0, 0),
+        Vec3::new_i32(0, 0, 555),
+        white.clone(),
+    )));
+
+    world.add(Arc::new(Quad::new(
+        Point3::zero(),
+        Vec3::new_i32(555, 0, 0),
+        Vec3::new_i32(0, 0, 555),
+        white.clone(),
+    )));
+
+    world.add(Arc::new(Quad::new(
+        Point3::new_i32(0, 0, 555),
+        Vec3::new_i32(555, 0, 0),
+        Vec3::new_i32(0, 555, 0),
+        white.clone(),
+    )));
+
+    let box1 = Arc::new(quad_box(
+        Point3::zero(),
+        Point3::new_i32(165, 330, 165),
+        white.clone(),
+    ));
+    let box1 = Arc::new(RotateY::new(box1, 15.0));
+    let box1 = Arc::new(Translate::new(box1, Vec3::new_i32(265, 0, 295)));
+    world.add(Arc::new(ConstantMedium::new(
+        box1,
+        0.01,
+        Colour::fill(0.0).into(),
+    )));
+
+    let box2 = Arc::new(quad_box(Point3::zero(), Point3::fill(165.0), white.clone()));
+    let box2 = Arc::new(RotateY::new(box2, -18.0));
+    let box2 = Arc::new(Translate::new(box2, Vec3::new_i32(130, 0, 65)));
+    world.add(Arc::new(ConstantMedium::new(
+        box2,
+        0.01,
+        Colour::fill(1.0).into(),
+    )));
 
     // Camera
     let cam = Camera::new(
