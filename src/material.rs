@@ -2,6 +2,7 @@ use crate::colour::Colour;
 use crate::hittable::HitRecord;
 use crate::ray::Ray;
 use crate::texture::Texture;
+use crate::vec3::random_unit_vector;
 use crate::{common, vec3};
 
 #[derive(Clone)]
@@ -10,6 +11,7 @@ pub enum Material {
     Metal { albedo: Colour, fuzziness: f64 },
     Dialectric { refraction: f64 },
     DiffuseLight { texture: Texture },
+    Isotropic { texture: Texture },
 }
 
 fn reflectance(cosine: f64, ref_idx: f64) -> f64 {
@@ -75,6 +77,11 @@ impl Material {
                 ))
             }
             Material::DiffuseLight { texture: _ } => None,
+            Material::Isotropic { texture } => {
+                let scattered = Ray::new_at(rec.p, random_unit_vector(), r_in.time());
+                let attenuation = texture.colour(rec.u, rec.v, rec.p);
+                Some((attenuation, scattered))
+            }
         }
     }
 
