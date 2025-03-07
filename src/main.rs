@@ -17,6 +17,8 @@ fn main() {
         "low" => LOW_QUALITY_RENDER,
         "med" => MEDIUM_QUALITY_RENDER,
         "high" => HIGH_QUALITY_RENDER,
+        "final" => FINAL_RENDER,
+        "lowlow" => LOWLOW_RENDER,
         _ => panic!("{}", USAGE),
     };
 
@@ -29,6 +31,7 @@ fn main() {
         6 => simple_light(&render),
         7 => cornell_box(&render),
         8 => cornell_smoke(&render),
+        9 => final_scene(&render),
         _ => panic!("Unsupported scene: {}", scene),
     }
 }

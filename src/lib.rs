@@ -39,6 +39,12 @@ use std::sync::Arc;
 const ASPECT_RATIO: f64 = 16.0 / 9.0;
 const SQUARE_ASPECT_RATIO: f64 = 1.0;
 
+pub const LOWLOW_RENDER: Render = Render {
+    width: 400,
+    samples_per_pixel: 250,
+    max_depth: 4,
+};
+
 pub const LOW_QUALITY_RENDER: Render = Render {
     width: 640,
     samples_per_pixel: 50,
@@ -55,6 +61,12 @@ pub const HIGH_QUALITY_RENDER: Render = Render {
     width: 1920,
     samples_per_pixel: 500,
     max_depth: 50,
+};
+
+pub const FINAL_RENDER: Render = Render {
+    width: 800,
+    samples_per_pixel: 10000,
+    max_depth: 40,
 };
 
 pub fn bouncing_spheres(render: &Render) {
@@ -188,6 +200,7 @@ pub fn checkered_spheres(render: &Render) {
             texture: checker.clone(),
         },
     )));
+    let world = BvhNode::new(&world.objects());
 
     // Camera
     let cam = Camera::new(
@@ -220,6 +233,7 @@ pub fn earth(render: &Render) {
         2.0,
         earth_surface,
     )));
+    let world = BvhNode::new(&world.objects());
 
     // Camera
     let cam = Camera::new(
@@ -260,6 +274,7 @@ pub fn perlin_spheres(render: &Render) {
             texture: perlin_texture.clone(),
         },
     )));
+    let world = BvhNode::new(&world.objects());
 
     // Camera
     let cam = Camera::new(
@@ -328,6 +343,7 @@ pub fn quads(render: &Render) {
         Vec3::new(0.0, 0.0, -4.0),
         lower_teal,
     )));
+    let world = BvhNode::new(&world.objects());
 
     // Camera
     let cam = Camera::new(
@@ -383,6 +399,7 @@ pub fn simple_light(render: &Render) {
         Vec3::new(0.0, 2.0, 0.0),
         difflight.clone(),
     )));
+    let world = BvhNode::new(&world.objects());
 
     // Camera
     let cam = Camera::new(
@@ -471,6 +488,7 @@ pub fn cornell_box(render: &Render) {
     let box2 = Arc::new(RotateY::new(box2, -18.0));
     let box2 = Arc::new(Translate::new(box2, Vec3::new_i32(130, 0, 65)));
     world.add(box2);
+    let world = BvhNode::new(&world.objects());
 
     // Camera
     let cam = Camera::new(
@@ -567,6 +585,7 @@ pub fn cornell_smoke(render: &Render) {
         0.01,
         Colour::fill(1.0).into(),
     )));
+    let world = BvhNode::new(&world.objects());
 
     // Camera
     let cam = Camera::new(
@@ -577,6 +596,147 @@ pub fn cornell_smoke(render: &Render) {
         SQUARE_ASPECT_RATIO,
         0.1,
         (Point3::new(278.0, 278.0, -800.0) - Point3::new(278.0, 278.0, 0.0)).length(),
+        Colour::zero(),
+    );
+
+    cam.render(&world, render);
+}
+
+pub fn final_scene(render: &Render) {
+    let ground = Material::Lambertian {
+        texture: Colour::new(0.48, 0.83, 0.53).into(),
+    };
+
+    let mut boxes1 = HittableList::new();
+    let boxes_per_side = 20;
+    for i in 0..boxes_per_side {
+        for j in 0..boxes_per_side {
+            let w = 100.0;
+            let x0 = -1000.0 + i as f64 * w;
+            let z0 = -1000.0 + j as f64 * w;
+            let y0 = 0.0;
+            let x1 = x0 + w;
+            let y1 = common::random_double_range(1.0, 101.0);
+            let z1 = z0 + w;
+
+            boxes1.add(Arc::new(quad_box(
+                Point3::new(x0, y0, z0),
+                Point3::new(x1, y1, z1),
+                ground.clone(),
+            )));
+        }
+    }
+
+    let mut world = HittableList::new();
+    world.add(Arc::new(boxes1));
+
+    let light = Material::DiffuseLight {
+        texture: Colour::fill(7.0).into(),
+    };
+    world.add(Arc::new(Quad::new(
+        Point3::new_i32(123, 553, 147),
+        Vec3::new_i32(300, 0, 0),
+        Vec3::new_i32(0, 0, 265),
+        light.clone(),
+    )));
+
+    let center1 = Point3::new_i32(400, 400, 200);
+    let center2 = center1 + Vec3::new_i32(30, 0, 0);
+    let sphere_material = Material::Lambertian {
+        texture: Colour::new(0.7, 0.3, 0.1).into(),
+    };
+    world.add(Arc::new(Sphere::moving(
+        (center1, center2),
+        50.0,
+        sphere_material,
+    )));
+
+    world.add(Arc::new(Sphere::stationary(
+        Point3::new_i32(260, 150, 45),
+        50.0,
+        Material::Dialectric { refraction: 1.5 },
+    )));
+    world.add(Arc::new(Sphere::stationary(
+        Point3::new_i32(0, 150, 145),
+        50.0,
+        Material::Metal {
+            albedo: Colour::new(0.8, 0.8, 0.9),
+            fuzziness: 1.0,
+        },
+    )));
+
+    let boundary = Arc::new(Sphere::stationary(
+        Point3::new_i32(360, 150, 145),
+        70.0,
+        Material::Dialectric { refraction: 1.5 },
+    ));
+    world.add(boundary.clone());
+    world.add(Arc::new(ConstantMedium::new(
+        boundary,
+        0.2,
+        Colour::new(0.2, 0.4, 0.9).into(),
+    )));
+    let boundary = Arc::new(Sphere::stationary(
+        Point3::zero(),
+        5000.0,
+        Material::Dialectric { refraction: 1.5 },
+    ));
+    world.add(Arc::new(ConstantMedium::new(
+        boundary,
+        0.0001,
+        Colour::fill(1.0).into(),
+    )));
+
+    let emat = Material::Lambertian {
+        texture: Texture::Image {
+            image: texture::load_image("earthmap.jpg"),
+        },
+    };
+    world.add(Arc::new(Sphere::stationary(
+        Point3::new_i32(400, 200, 400),
+        100.0,
+        emat,
+    )));
+    let perlin_texture = Texture::Noise {
+        noise: Box::new(Perlin::new()),
+        scale: 4.0,
+    };
+    world.add(Arc::new(Sphere::stationary(
+        Point3::new_i32(220, 280, 300),
+        80.0,
+        Material::Lambertian {
+            texture: perlin_texture,
+        },
+    )));
+
+    let mut boxes2 = HittableList::new();
+    let white = Material::Lambertian {
+        texture: Colour::new(0.73, 0.73, 0.73).into(),
+    };
+    let ns = 1000;
+    for _ in 0..ns {
+        boxes2.add(Arc::new(Sphere::stationary(
+            Point3::random_range(0.0, 165.0),
+            10.0,
+            white.clone(),
+        )));
+    }
+
+    let boxes2 = Arc::new(RotateY::new(Arc::new(boxes2), 15.0));
+    let boxes2 = Arc::new(Translate::new(boxes2, Vec3::new_i32(-100, 270, 395)));
+    world.add(boxes2);
+
+    let world = BvhNode::new(&world.objects());
+
+    // Camera
+    let cam = Camera::new(
+        Point3::new_i32(478, 278, -600),
+        Point3::new_i32(278, 278, 0),
+        Vec3::new(0.0, 1.0, 0.0),
+        40.0,
+        SQUARE_ASPECT_RATIO,
+        0.1,
+        (Point3::new(478.0, 278.0, -600.0) - Point3::new(278.0, 278.0, 0.0)).length(),
         Colour::zero(),
     );
 
