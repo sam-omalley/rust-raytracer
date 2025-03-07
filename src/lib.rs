@@ -22,7 +22,7 @@ use colour::Colour;
 use hittable_list::HittableList;
 use material::Material;
 use perlin::Perlin;
-use quad::Quad;
+use quad::{Quad, quad_box};
 use sphere::Sphere;
 use texture::Texture;
 use vec3::{Point3, Vec3};
@@ -449,6 +449,17 @@ pub fn cornell_box(render: &Render) {
         Point3::new(0.0, 0.0, 555.0),
         Vec3::new(555.0, 0.0, 0.0),
         Vec3::new(0.0, 555.0, 0.0),
+        white.clone(),
+    )));
+
+    world.add(Arc::new(quad_box(
+        Point3::new_i32(130, 0, 65),
+        Point3::new_i32(295, 165, 230),
+        white.clone(),
+    )));
+    world.add(Arc::new(quad_box(
+        Point3::new_i32(265, 0, 295),
+        Point3::new_i32(430, 330, 460),
         white.clone(),
     )));
 

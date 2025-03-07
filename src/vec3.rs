@@ -8,20 +8,26 @@ pub struct Vec3 {
 }
 
 impl Vec3 {
-    pub fn new(x: f64, y: f64, z: f64) -> Vec3 {
-        Vec3 { e: [x, y, z] }
+    pub fn new(x: f64, y: f64, z: f64) -> Self {
+        Self { e: [x, y, z] }
     }
 
-    pub fn fill(t: f64) -> Vec3 {
+    pub fn new_i32(x: i32, y: i32, z: i32) -> Self {
+        Self {
+            e: [x as f64, y as f64, z as f64],
+        }
+    }
+
+    pub fn fill(t: f64) -> Self {
         Vec3 { e: [t, t, t] }
     }
 
-    pub fn zero() -> Vec3 {
+    pub fn zero() -> Self {
         Vec3::fill(0.0)
     }
 
-    pub fn random() -> Vec3 {
-        Vec3 {
+    pub fn random() -> Self {
+        Self {
             e: [
                 common::random_double(),
                 common::random_double(),
@@ -30,8 +36,8 @@ impl Vec3 {
         }
     }
 
-    pub fn random_range(min: f64, max: f64) -> Vec3 {
-        Vec3 {
+    pub fn random_range(min: f64, max: f64) -> Self {
+        Self {
             e: [
                 common::random_double_range(min, max),
                 common::random_double_range(min, max),

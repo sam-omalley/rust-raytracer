@@ -1,9 +1,12 @@
 use crate::aabb::Aabb;
 use crate::hittable::{HitRecord, Hittable};
+use crate::hittable_list::HittableList;
 use crate::interval::Interval;
 use crate::material::Material;
 use crate::ray::Ray;
 use crate::vec3::{Point3, Vec3, cross, dot, unit_vector};
+
+use std::sync::Arc;
 
 pub struct Quad {
     q: Point3,
@@ -81,7 +84,7 @@ impl Hittable for Quad {
             rec.p = intersection;
             rec.set_face_normal(r, self.normal);
 
-            return Some((rec, &self.material))
+            return Some((rec, &self.material));
         }
         None
     }
@@ -89,4 +92,70 @@ impl Hittable for Quad {
     fn bounding_box(&self) -> &Aabb {
         &self.bbox
     }
+}
+
+pub fn quad_box(a: Point3, b: Point3, material: Material) -> HittableList {
+    // Returns the 3D box (six sides) that contains the two opposite vertices a & b.
+    let mut sides = HittableList::new();
+
+    // Construct the two opposite vertices with the minimum and maximum coordinates.
+    let min = Point3::new(
+        f64::min(a.x(), b.x()),
+        f64::min(a.y(), b.y()),
+        f64::min(a.z(), b.z()),
+    );
+    let max = Point3::new(
+        f64::max(a.x(), b.x()),
+        f64::max(a.y(), b.y()),
+        f64::max(a.z(), b.z()),
+    );
+
+    let dx = Vec3::new(max.x() - min.x(), 0.0, 0.0);
+    let dy = Vec3::new(0.0, max.y() - min.y(), 0.0);
+    let dz = Vec3::new(0.0, 0.0, max.z() - min.z());
+
+    // Front
+    sides.add(Arc::new(Quad::new(
+        Point3::new(min.x(), min.y(), max.z()),
+        dx,
+        dy,
+        material.clone(),
+    )));
+    // Right
+    sides.add(Arc::new(Quad::new(
+        Point3::new(max.x(), min.y(), max.z()),
+        -dz,
+        dy,
+        material.clone(),
+    )));
+    // Back
+    sides.add(Arc::new(Quad::new(
+        Point3::new(max.x(), min.y(), min.z()),
+        -dx,
+        dy,
+        material.clone(),
+    )));
+    // Left
+    sides.add(Arc::new(Quad::new(
+        Point3::new(min.x(), min.y(), min.z()),
+        dz,
+        dy,
+        material.clone(),
+    )));
+    // Top
+    sides.add(Arc::new(Quad::new(
+        Point3::new(min.x(), max.y(), max.z()),
+        dx,
+        -dz,
+        material.clone(),
+    )));
+    // Bottom
+    sides.add(Arc::new(Quad::new(
+        Point3::new(min.x(), min.y(), min.z()),
+        dx,
+        dz,
+        material.clone(),
+    )));
+
+    sides
 }
