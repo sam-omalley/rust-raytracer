@@ -52,29 +52,28 @@ impl Material {
                 }
             }
             Material::Dialectric { refraction } => {
-                let refraction_ratio = if vec3::dot(r_in.direction(), rec.normal) <= 0.0 {
-                    *refraction
-                } else {
-                    1.0 / *refraction
-                };
-
-                let unit_direction = vec3::unit_vector(r_in.direction());
-                let cos_theta = f64::min(vec3::dot(-unit_direction, rec.normal), 1.0);
-                let sin_theta = f64::sqrt(1.0 - cos_theta * cos_theta);
-
-                let cannot_refract = refraction_ratio * sin_theta > 1.0;
-                let direction = if cannot_refract
-                    || reflectance(cos_theta, refraction_ratio) > common::random_double()
+                let (outward_normal, ni_over_nt, cosine) = if r_in.direction().dot(rec.normal) > 0.0
                 {
-                    vec3::reflect(unit_direction, rec.normal)
+                    (
+                        -rec.normal,
+                        *refraction,
+                        *refraction * r_in.direction().dot(rec.normal) / r_in.direction().length(),
+                    )
                 } else {
-                    vec3::refract(unit_direction, rec.normal, refraction_ratio)
+                    (
+                        rec.normal,
+                        1.0 / *refraction,
+                        -r_in.direction().dot(rec.normal) / r_in.direction().length(),
+                    )
                 };
 
-                Some((
-                    Colour::new(1.0, 1.0, 1.0),
-                    Ray::new_at(rec.p, direction, r_in.time()),
-                ))
+                let direction = vec3::refract(r_in.direction(), outward_normal, ni_over_nt)
+                    .filter(|_| common::random_double() >= reflectance(cosine, *refraction))
+                    .unwrap_or_else(|| vec3::reflect(r_in.direction(), rec.normal));
+
+                let attenuation = Colour::fill(1.0);
+                let ray = Ray::new_at(rec.p, direction, r_in.time());
+                Some((attenuation, ray))
             }
             Material::DiffuseLight { texture: _ } => None,
             Material::Isotropic { texture } => {
