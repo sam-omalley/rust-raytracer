@@ -8,6 +8,7 @@ pub struct Ray {
 }
 
 impl Ray {
+    #[inline]
     pub fn new(origin: Point3, direction: Vec3) -> Ray {
         Ray {
             orig: origin,
@@ -16,6 +17,7 @@ impl Ray {
         }
     }
 
+    #[inline]
     pub fn new_at(origin: Point3, direction: Vec3, time: f64) -> Ray {
         Ray {
             orig: origin,
@@ -24,18 +26,22 @@ impl Ray {
         }
     }
 
+    #[inline]
     pub fn origin(&self) -> Point3 {
         self.orig
     }
 
+    #[inline]
     pub fn direction(&self) -> Vec3 {
         self.dir
     }
 
+    #[inline]
     pub fn time(&self) -> f64 {
         self.time
     }
 
+    #[inline]
     pub fn at(&self, t: f64) -> Point3 {
         self.orig + t * self.dir
     }
