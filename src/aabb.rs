@@ -17,14 +17,13 @@ impl Aabb {
             min: minimum,
             max: maximum,
         }
-        .pad_to_minimums()
     }
 
     pub fn fit(a: Point3, b: Point3) -> Aabb {
         let small = Point3::new(a.x().min(b.x()), a.y().min(b.y()), a.z().min(b.z()));
         let big = Point3::new(a.x().max(b.x()), a.y().max(b.y()), a.z().max(b.z()));
 
-        Aabb::new(small, big).pad_to_minimums()
+        Aabb::new(small, big)
     }
 
     pub fn empty() -> Aabb {
@@ -34,7 +33,7 @@ impl Aabb {
         }
     }
 
-    fn pad_to_minimums(&self) -> Self {
+    pub fn pad_to_minimums(&self) -> Self {
         let delta: f64 = 0.0001;
 
         let mut delta_x = 0.0;

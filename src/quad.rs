@@ -39,8 +39,8 @@ impl Quad {
     }
 
     fn calc_bounding_box(q: Point3, u: Vec3, v: Vec3) -> Aabb {
-        let bbox_diagonal1 = Aabb::new(q, q + u + v);
-        let bbox_diagonal2 = Aabb::new(q + u, q + v);
+        let bbox_diagonal1 = Aabb::new(q, q + u + v).pad_to_minimums();
+        let bbox_diagonal2 = Aabb::new(q + u, q + v).pad_to_minimums();
         Aabb::combine(&bbox_diagonal1, &bbox_diagonal2)
     }
 
