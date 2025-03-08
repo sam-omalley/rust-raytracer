@@ -88,6 +88,10 @@ impl Vec3 {
         // Return true if the vector is close to zero in all dimensions.
         f64::abs(self.e[0]) < EPS && f64::abs(self.e[1]) < EPS && f64::abs(self.e[2]) < EPS
     }
+    #[inline]
+    pub fn dot(&self, v: Vec3) -> f64 {
+        (self.e[0] * v.e[0]) + (self.e[1] * v.e[1]) + (self.e[2] * v.e[2])
+    }
 }
 
 // Type alias
@@ -271,13 +275,20 @@ pub fn random_in_unit_disk() -> Vec3 {
 
 #[inline]
 pub fn reflect(v: Vec3, n: Vec3) -> Vec3 {
-    v - 2.0 * dot(v, n) * n
+    v - 2.0 * v.dot(n) * n
 }
 
+/// Refracts `v` into a material with surface normal `n`. `ni_over_nt` is the
+/// refractive index if the ray is exiting the material, or its reciprocal if
+/// it's entering.
 #[inline]
-pub fn refract(uv: Vec3, n: Vec3, etai_over_etat: f64) -> Vec3 {
-    let cos_theta = f64::min(dot(-uv, n), 1.0);
-    let r_out_perp = etai_over_etat * (uv + cos_theta * n);
-    let r_out_parallel = -f64::sqrt(f64::abs(1.0 - r_out_perp.length_squared())) * n;
-    r_out_perp + r_out_parallel
+pub fn refract(v: Vec3, n: Vec3, ni_over_nt: f64) -> Option<Vec3> {
+    let uv = unit_vector(v);
+    let dt = uv.dot(n);
+    let discriminant = 1.0 - ni_over_nt * ni_over_nt * (1. - dt * dt);
+    if discriminant > 0. {
+        Some(ni_over_nt * (uv - dt * n) - discriminant.sqrt() * n)
+    } else {
+        None
+    }
 }
