@@ -73,6 +73,7 @@ impl Sphere {
 }
 
 impl Hittable for Sphere {
+    #[inline]
     fn hit<'a>(&'a self, r: &Ray, ray_t: Interval) -> Option<HitRecord<'a>> {
         let current_centre = self.centre.at(r.time());
         let oc = r.origin() - current_centre;

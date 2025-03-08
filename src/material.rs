@@ -14,6 +14,7 @@ pub enum Material {
     Isotropic { texture: Texture },
 }
 
+#[inline]
 fn reflectance(cosine: f64, ref_idx: f64) -> f64 {
     // Use Schlick's approximation for reflectance
     let mut r0 = (1.0 - ref_idx) / (1.0 + ref_idx);
@@ -22,6 +23,7 @@ fn reflectance(cosine: f64, ref_idx: f64) -> f64 {
 }
 
 impl Material {
+    #[inline]
     pub fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<(Colour, Ray)> {
         match self {
             Material::Lambertian { texture } => {
@@ -84,6 +86,7 @@ impl Material {
         }
     }
 
+    #[inline]
     pub fn emitted(&self, u: f64, v: f64, p: vec3::Point3) -> Colour {
         match self {
             Material::DiffuseLight { texture } => texture.colour(u, v, p),
