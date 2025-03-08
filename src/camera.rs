@@ -7,6 +7,7 @@ use crate::vec3::{self, Point3, Vec3};
 
 use rayon::prelude::*;
 use std::sync::Mutex;
+use std::time::Instant;
 
 pub struct Render {
     pub width: i32,
@@ -67,11 +68,21 @@ impl Camera {
         }
     }
 
+    pub fn render_new(&self, world: &dyn Hittable, render: &Render) {
+        let height = (render.width as f32 / self.aspect_ratio) as i32;
+        let start = Instant::now();
+        let image = par_cast(render.width, height, render.samples_per_pixel, self, world, render.max_depth);
+        eprintln!("Processing took {:?} wall time", start.elapsed());
+
+        image.print_ppm();
+    }
+
     pub fn render(&self, world: &dyn Hittable, render: &Render) {
         let progress = Mutex::new(0);
 
         let height = (render.width as f32 / self.aspect_ratio) as i32;
         let num_pixels = render.width * height;
+        let start = Instant::now();
 
         let pixels: Vec<(u8, u8, u8)> = (0..num_pixels)
             .into_par_iter()
@@ -89,14 +100,15 @@ impl Camera {
 
                 let mut pixel_colour = Colour::new(0.0, 0.0, 0.0);
                 for _ in 0..render.samples_per_pixel {
-                    let u = (i as f32 + common::random_float()) / (render.width - 1) as f32;
-                    let v = (j as f32 + common::random_float()) / (height - 1) as f32;
+                    let u = (i as f32 + common::random_float()) / (render.width) as f32;
+                    let v = (j as f32 + common::random_float()) / (height) as f32;
                     let r = self.get_ray(u, v);
                     pixel_colour += self.ray_colour(&r, world, render.max_depth);
                 }
                 colour::get_output_colour(pixel_colour, render.samples_per_pixel)
             })
             .collect::<Vec<(u8, u8, u8)>>();
+        eprintln!("Processing took {:?} wall time", start.elapsed());
 
         // Render
         println!("P3");
@@ -128,7 +140,10 @@ impl Camera {
 
         match world.hit(r, Interval::new(0.001, common::INFINITY)) {
             Some(hit_record) => {
-                let emission_colour = hit_record.material.emitted(hit_record.u, hit_record.v, hit_record.p);
+                let emission_colour =
+                    hit_record
+                        .material
+                        .emitted(hit_record.u, hit_record.v, hit_record.p);
                 match hit_record.material.scatter(r, &hit_record) {
                     Some((attenuation, scattered)) => {
                         let scatter_colour =
@@ -139,6 +154,85 @@ impl Camera {
                 }
             }
             None => self.background,
+        }
+    }
+}
+
+pub fn par_cast(
+    nx: i32,
+    ny: i32,
+    ns: i32,
+    camera: &Camera,
+    world: &dyn Hittable,
+    depth: i32,
+) -> Image {
+    Image::par_compute(nx, ny, |x, y| {
+        let col: Vec3 = (0..ns)
+            .map(|_| {
+                let u = (x as f32 + common::random_float()) / nx as f32;
+                let v = (y as f32 + common::random_float()) / ny as f32;
+                let r = camera.get_ray(u, v);
+                camera.ray_colour(&r, world, depth)
+            })
+            .sum();
+        col / ns as f32
+    })
+}
+
+pub fn cast(nx: i32, ny: i32, ns: i32, camera: &Camera, world: &dyn Hittable, depth: i32) -> Image {
+    Image::compute(nx, ny, |x, y| {
+        let col: Vec3 = (0..ns)
+            .map(|_| {
+                let u = (x as f32 + common::random_float()) / nx as f32;
+                let v = (y as f32 + common::random_float()) / ny as f32;
+                let r = camera.get_ray(u, v);
+                camera.ray_colour(&r, world, depth)
+            })
+            .sum();
+        col / ns as f32
+    })
+}
+
+pub struct Image(Vec<Vec<Vec3>>);
+
+impl Image {
+    pub fn par_compute(nx: i32, ny: i32, f: impl Fn(i32, i32) -> Vec3 + Sync) -> Image {
+        Image(
+            (0..ny)
+                .into_par_iter()
+                .rev()
+                .map(|y| (0..nx).map(|x| f(x, y)).collect())
+                .collect(),
+        )
+    }
+
+    pub fn compute(nx: i32, ny: i32, f: impl Fn(i32, i32) -> Vec3) -> Image {
+        Image(
+            (0..ny)
+                .rev()
+                .map(|y| (0..nx).map(|x| f(x, y)).collect())
+                .collect(),
+        )
+    }
+
+    pub fn print_ppm(&self) {
+        println!("P3");
+        println!("{} {}", self.0[0].len(), self.0.len());
+        println!("255");
+        for scanline in self.0.iter() {
+            for col in scanline.iter() {
+                let col = Vec3::new(col.x().sqrt(), col.y().sqrt(), col.z().sqrt());
+
+                fn to_u8(x: f32) -> i32 {
+                    ((255.99 * x) as i32).clamp(0, 255)
+                }
+
+                let ir = to_u8(col.x());
+                let ig = to_u8(col.y());
+                let ib = to_u8(col.z());
+
+                println!("{} {} {}", ir, ig, ib);
+            }
         }
     }
 }

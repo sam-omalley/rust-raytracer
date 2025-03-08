@@ -223,6 +223,16 @@ impl Div<Vec3> for f32 {
     }
 }
 
+impl std::iter::Sum for Vec3 {
+    #[inline]
+    fn sum<I>(iter: I) -> Self
+    where
+        I: Iterator<Item = Self>,
+    {
+        iter.fold(Vec3::default(), std::ops::Add::add)
+    }
+}
+
 #[inline]
 pub fn dot(u: Vec3, v: Vec3) -> f32 {
     (u.e[0] * v.e[0]) + (u.e[1] * v.e[1]) + (u.e[2] * v.e[2])

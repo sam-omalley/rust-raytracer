@@ -38,7 +38,7 @@ const SQUARE_ASPECT_RATIO: f32 = 1.0;
 
 pub const LOWLOW_RENDER: Render = Render {
     width: 400,
-    samples_per_pixel: 250,
+    samples_per_pixel: 5,
     max_depth: 4,
 };
 
