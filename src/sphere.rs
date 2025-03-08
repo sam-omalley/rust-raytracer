@@ -9,13 +9,13 @@ use crate::vec3::{self, Point3, Vec3};
 #[derive(Debug)]
 pub struct Sphere {
     centre: Ray,
-    radius: f64,
+    radius: f32,
     material: Material,
     bbox: Aabb,
 }
 
 impl Sphere {
-    pub fn stationary(centre: Point3, radius: f64, material: Material) -> Sphere {
+    pub fn stationary(centre: Point3, radius: f32, material: Material) -> Sphere {
         let rvec = Vec3::new(radius, radius, radius);
         Sphere {
             centre: Ray::new(centre, Point3::zero()),
@@ -25,7 +25,7 @@ impl Sphere {
         }
     }
 
-    pub fn moving(centres: (Point3, Point3), radius: f64, material: Material) -> Sphere {
+    pub fn moving(centres: (Point3, Point3), radius: f32, material: Material) -> Sphere {
         let rvec = Vec3::new(radius, radius, radius);
         let box1 = Aabb::fit(centres.0 - rvec, centres.0 + rvec);
         let box2 = Aabb::fit(centres.1 - rvec, centres.1 + rvec);
@@ -64,9 +64,9 @@ impl Sphere {
     /// let (u, v) = Sphere::get_uv(&Point3::new(0.0, 0.0, -1.0));
     /// assert_eq!((u, v), (0.75, 0.5));
     /// ```
-    pub fn get_uv(p: &Point3) -> (f64, f64) {
-        let theta = f64::acos(-p.y());
-        let phi = f64::atan2(-p.z(), p.x()) + PI;
+    pub fn get_uv(p: &Point3) -> (f32, f32) {
+        let theta = f32::acos(-p.y());
+        let phi = f32::atan2(-p.z(), p.x()) + PI;
 
         (phi / (2.0 * PI), (theta / PI))
     }
@@ -85,7 +85,7 @@ impl Hittable for Sphere {
             return None;
         }
 
-        let sqrt_d = f64::sqrt(discriminant);
+        let sqrt_d = f32::sqrt(discriminant);
 
         // Find the nearest root that lies in the aceptable range
         let mut root = (-half_b - sqrt_d) / a;

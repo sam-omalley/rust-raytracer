@@ -34,7 +34,7 @@ impl Aabb {
     }
 
     pub fn pad_to_minimums(&self) -> Self {
-        let delta: f64 = 0.0001;
+        let delta: f32 = 0.0001;
 
         let mut delta_x = 0.0;
         let mut delta_y = 0.0;
@@ -59,15 +59,15 @@ impl Aabb {
 
     pub fn combine(a: &Aabb, b: &Aabb) -> Aabb {
         let min = Point3::new(
-            f64::min(a.min().x(), b.min().x()),
-            f64::min(a.min().y(), b.min().y()),
-            f64::min(a.min().z(), b.min().z()),
+            f32::min(a.min().x(), b.min().x()),
+            f32::min(a.min().y(), b.min().y()),
+            f32::min(a.min().z(), b.min().z()),
         );
 
         let max = Point3::new(
-            f64::max(a.max().x(), b.max().x()),
-            f64::max(a.max().y(), b.max().y()),
-            f64::max(a.max().z(), b.max().z()),
+            f32::max(a.max().x(), b.max().x()),
+            f32::max(a.max().y(), b.max().y()),
+            f32::max(a.max().z(), b.max().z()),
         );
 
         Aabb::new(min, max)
@@ -85,7 +85,7 @@ impl Aabb {
         let mut longest_axis = 0;
         let mut longest = 0.0;
         for axis in 0..=2 {
-            let sz = f64::abs(self.max[axis] - self.min[axis]);
+            let sz = f32::abs(self.max[axis] - self.min[axis]);
             if sz > longest {
                 longest = sz;
                 longest_axis = axis;

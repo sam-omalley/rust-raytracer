@@ -8,18 +8,18 @@ use crate::{common, vec3};
 #[derive(Clone, Debug)]
 pub enum Material {
     Lambertian { texture: Texture },
-    Metal { albedo: Colour, fuzziness: f64 },
-    Dielectric { refraction: f64 },
+    Metal { albedo: Colour, fuzziness: f32 },
+    Dielectric { refraction: f32 },
     DiffuseLight { texture: Texture },
     Isotropic { texture: Texture },
 }
 
 #[inline]
-fn reflectance(cosine: f64, ref_idx: f64) -> f64 {
+fn reflectance(cosine: f32, ref_idx: f32) -> f32 {
     // Use Schlick's approximation for reflectance
     let mut r0 = (1.0 - ref_idx) / (1.0 + ref_idx);
     r0 = r0 * r0;
-    r0 + (1.0 - r0) * f64::powf(1.0 - cosine, 5.0)
+    r0 + (1.0 - r0) * f32::powf(1.0 - cosine, 5.0)
 }
 
 impl Material {
@@ -87,7 +87,7 @@ impl Material {
     }
 
     #[inline]
-    pub fn emitted(&self, u: f64, v: f64, p: vec3::Point3) -> Colour {
+    pub fn emitted(&self, u: f32, v: f32, p: vec3::Point3) -> Colour {
         match self {
             Material::DiffuseLight { texture } => texture.colour(u, v, p),
             _ => Colour::zero(),

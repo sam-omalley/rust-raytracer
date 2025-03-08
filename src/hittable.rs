@@ -9,9 +9,9 @@ use crate::vec3::{Point3, Vec3};
 pub struct HitRecord<'m> {
     pub p: Point3,
     pub normal: Vec3,
-    pub t: f64,
-    pub u: f64,
-    pub v: f64,
+    pub t: f32,
+    pub u: f32,
+    pub v: f32,
     pub material: &'m Material,
 }
 

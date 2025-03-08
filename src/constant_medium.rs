@@ -10,12 +10,12 @@ use crate::vec3::Vec3;
 #[derive(Debug)]
 pub struct ConstantMedium<H: Hittable> {
     boundary: H,
-    neg_inv_density: f64,
+    neg_inv_density: f32,
     phase_function: Material,
 }
 
 impl<H: Hittable> ConstantMedium<H> {
-    pub fn new(boundary: H, density: f64, texture: Texture) -> Self {
+    pub fn new(boundary: H, density: f32, texture: Texture) -> Self {
         Self {
             boundary,
             neg_inv_density: -1.0 / density,
