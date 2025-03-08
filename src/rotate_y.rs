@@ -8,6 +8,7 @@ use crate::vec3::{Point3, Vec3};
 
 
 // TODO: Add Axis rather than hard-code Y-axis.
+#[derive(Debug)]
 pub struct RotateY<H: Hittable> {
     object: H,
     bbox: Aabb,

@@ -7,6 +7,7 @@ use crate::ray::Ray;
 use crate::texture::Texture;
 use crate::vec3::Vec3;
 
+#[derive(Debug)]
 pub struct ConstantMedium<H: Hittable> {
     boundary: H,
     neg_inv_density: f64,

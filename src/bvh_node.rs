@@ -4,69 +4,72 @@ use crate::interval::Interval;
 use crate::material::Material;
 use crate::ray::Ray;
 
-use std::cmp::Ordering;
+#[derive(Debug)]
+pub struct Bvh {
+    bbox: Aabb,
+    size: usize,
+    contents: BvhContents,
+}
 
-enum BvhNode {
-    Branch { left: Box<Bvh>, right: Box<Bvh> },
+#[derive(Debug)]
+pub enum BvhContents {
+    Node { left: Box<Bvh>, right: Box<Bvh> },
     Leaf(Box<dyn Hittable>),
 }
 
-pub struct Bvh {
-    tree: BvhNode,
-    bbox: Aabb,
-}
-
 impl Bvh {
-    pub fn new(mut hittable: Vec<Box<dyn Hittable>>) -> Self {
-        fn box_compare(
-            axis: usize,
-        ) -> impl FnMut(&Box<dyn Hittable>, &Box<dyn Hittable>) -> Ordering {
-            move |a, b| {
-                let a_bbox = a.bounding_box();
-                let b_bbox = b.bounding_box();
-                let ac = a_bbox.min()[axis] + a_bbox.max()[axis];
-                let bc = b_bbox.min()[axis] + b_bbox.max()[axis];
-                ac.partial_cmp(&bc).unwrap()
-            }
+    pub fn new(mut objs: Vec<Box<dyn Hittable>>) -> Self {
+        // Note: though this BVH implementation is largely derived from Peter
+        // Shirley's, it does *not* use the random axis selection and sort
+        // routine, because it tends to fall into pathological cases.
+        fn axis_range(objs: &[Box<dyn Hittable>], axis: usize) -> f64 {
+            let range = objs.iter().fold(f64::MAX..f64::MIN, |range, o| {
+                let bb = o.bounding_box();
+                let min = bb.min[axis].min(bb.max[axis]);
+                let max = bb.min[axis].max(bb.max[axis]);
+                range.start.min(min)..range.end.max(max)
+            });
+            range.end - range.start
         }
 
-        fn axis_range(hittable: &Vec<Box<dyn Hittable>>, axis: usize) -> f64 {
-            let (min, max) = hittable
-                .iter()
-                .fold((f64::MAX, f64::MIN), |(bmin, bmax), hit| {
-                    let bbox = hit.bounding_box();
-                    (bmin.min(bbox.min()[axis]), bmax.max(bbox.max()[axis]))
-                });
-            max - min
-        }
+        // Find the axis that has the greatest range for this set of objects.
+        // TODO: Implement Axis enum
+        let axis = {
+            let mut ranges = [
+                (0, axis_range(&objs, 0)),
+                (1, axis_range(&objs, 1)),
+                (2, axis_range(&objs, 2)),
+            ];
+            // Note reversed comparison function, to sort descending:
+            ranges.sort_unstable_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
+            ranges[0].0
+        };
 
-        let axis_ranges: Vec<(usize, f64)> =
-            (0..3).map(|a| (a, axis_range(&hittable, a))).collect();
+        // Sort objects along it by centroid. (Actually, by cenroid*2. This is equivalent and cheaper.)
+        objs.sort_unstable_by(|a, b| {
+            let abb = a.bounding_box();
+            let bbb = b.bounding_box();
+            let av = abb.min[axis] + abb.max[axis];
+            let bv = bbb.min[axis] + bbb.max[axis];
+            av.partial_cmp(&bv).unwrap()
+        });
 
-        let axis = axis_ranges[0].0;
-
-        hittable.sort_unstable_by(box_compare(axis));
-        let len = hittable.len();
-        match len {
-            0 => panic!("No elements in scene"),
-            1 => {
-                let leaf = hittable.pop().unwrap();
-                let bbox = leaf.bounding_box();
-                Bvh {
-                    tree: BvhNode::Leaf(leaf),
-                    bbox,
-                }
-            }
+        match objs.len() {
+            0 => panic!("Can't create a BVH from zero objects."),
+            1 => Bvh {
+                bbox: objs[0].bounding_box(),
+                size: 1,
+                contents: BvhContents::Leaf(objs.pop().unwrap()),
+            },
             _ => {
-                let right = Bvh::new(hittable.drain(len / 2..).collect());
-                let left = Bvh::new(hittable);
-                let bbox = Aabb::combine(&left.bbox, &right.bbox);
+                // Divide space at the median point of the selected axis.
+                let right = Box::new(Bvh::new(objs.drain(objs.len() / 2..).collect()));
+                let left = Box::new(Bvh::new(objs));
+
                 Bvh {
-                    tree: BvhNode::Branch {
-                        left: Box::new(left),
-                        right: Box::new(right),
-                    },
-                    bbox,
+                    bbox: Aabb::combine(&left.bbox, &right.bbox),
+                    size: left.size + right.size,
+                    contents: BvhContents::Node { left, right },
                 }
             }
         }
@@ -76,16 +79,29 @@ impl Bvh {
 impl Hittable for Bvh {
     fn hit(&self, r: &Ray, mut ray_t: Interval) -> Option<(HitRecord, &Material)> {
         if self.bbox.hit(r, ray_t) {
-            match &self.tree {
-                BvhNode::Leaf(leaf) => leaf.hit(r, ray_t),
-                BvhNode::Branch { left, right } => {
-                    let left = left.hit(r, ray_t);
-                    if let Some((l_rec, _)) = &left {
-                        ray_t.max = l_rec.t
-                    };
-                    let right = right.hit(r, ray_t);
-                    if right.is_some() { right } else { left }
+            match &self.contents {
+                BvhContents::Node { left, right } => {
+                    let hit_left = left.hit(r, ray_t);
+
+                    // Don't bother searching past the left ht in the right space.
+                    if let Some((rec, _)) = &hit_left {
+                        ray_t.max = rec.t;
+                    }
+
+                    let hit_right = right.hit(r, ray_t);
+
+                    match (hit_left, hit_right) {
+                        (h, None) | (None, h) => h,
+                        (Some(hl), Some(hr)) => {
+                            if hl.0.t < hr.0.t {
+                                Some(hl)
+                            } else {
+                                Some(hr)
+                            }
+                        }
+                    }
                 }
+                BvhContents::Leaf(obj) => obj.hit(r, ray_t),
             }
         } else {
             None

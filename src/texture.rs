@@ -13,7 +13,7 @@ pub fn load_image(name: &str) -> RgbImage {
     img.to_rgb8()
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum Texture {
     SolidColour {
         albedo: Colour,

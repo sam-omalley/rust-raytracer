@@ -6,6 +6,7 @@ use crate::material::Material;
 use crate::ray::Ray;
 use crate::vec3::{Point3, Vec3, cross, dot, unit_vector};
 
+#[derive(Debug)]
 pub struct Quad {
     q: Point3,
     u: Vec3,
