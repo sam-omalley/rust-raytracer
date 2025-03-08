@@ -57,7 +57,7 @@ impl Quad {
 }
 
 impl Hittable for Quad {
-    fn hit(&self, r: &Ray, ray_t: Interval) -> Option<(HitRecord, &Material)> {
+    fn hit<'a>(&'a self, r: &Ray, ray_t: Interval) -> Option<HitRecord<'a>> {
         let denom = dot(self.normal, r.direction());
 
         if f64::abs(denom) < 1e-8 {
@@ -76,14 +76,17 @@ impl Hittable for Quad {
         let beta = dot(self.w, cross(self.u, planar_hitpt_vector));
 
         if let Some((u, v)) = Self::is_interior(alpha, beta) {
-            let mut rec = HitRecord::new();
-            rec.u = u;
-            rec.v = v;
-            rec.t = t;
-            rec.p = intersection;
-            rec.set_face_normal(r, self.normal);
+            return Some(
+                HitRecord{
+                    t,
+                    p: intersection,
+                    u,
+                    v,
+                    normal: self.normal,
+                    material: &self.material,
+                }
 
-            return Some((rec, &self.material));
+            )
         }
         None
     }

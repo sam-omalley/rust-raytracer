@@ -1,7 +1,6 @@
 use crate::aabb::Aabb;
 use crate::hittable::{HitRecord, Hittable};
 use crate::interval::Interval;
-use crate::material::Material;
 use crate::ray::Ray;
 
 #[derive(Debug)]
@@ -77,14 +76,14 @@ impl Bvh {
 }
 
 impl Hittable for Bvh {
-    fn hit(&self, r: &Ray, mut ray_t: Interval) -> Option<(HitRecord, &Material)> {
+    fn hit<'a>(&'a self, r: &Ray, mut ray_t: Interval) -> Option<HitRecord<'a>> {
         if self.bbox.hit(r, ray_t) {
             match &self.contents {
                 BvhContents::Node { left, right } => {
                     let hit_left = left.hit(r, ray_t);
 
                     // Don't bother searching past the left ht in the right space.
-                    if let Some((rec, _)) = &hit_left {
+                    if let Some(rec) = &hit_left {
                         ray_t.max = rec.t;
                     }
 
@@ -93,7 +92,7 @@ impl Hittable for Bvh {
                     match (hit_left, hit_right) {
                         (h, None) | (None, h) => h,
                         (Some(hl), Some(hr)) => {
-                            if hl.0.t < hr.0.t {
+                            if hl.t < hr.t {
                                 Some(hl)
                             } else {
                                 Some(hr)

@@ -52,10 +52,10 @@ impl Material {
                 }
             }
             Material::Dialectric { refraction } => {
-                let refraction_ratio = if rec.front_face {
-                    1.0 / *refraction
-                } else {
+                let refraction_ratio = if vec3::dot(r_in.direction(), rec.normal) <= 0.0 {
                     *refraction
+                } else {
+                    1.0 / *refraction
                 };
 
                 let unit_direction = vec3::unit_vector(r_in.direction());
