@@ -104,7 +104,7 @@ impl Hittable for Sphere {
         Some((rec, &self.material))
     }
 
-    fn bounding_box(&self) -> &Aabb {
-        &self.bbox
+    fn bounding_box(&self) -> Aabb {
+        self.bbox
     }
 }

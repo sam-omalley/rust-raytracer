@@ -89,8 +89,8 @@ impl Hittable for Quad {
         None
     }
 
-    fn bounding_box(&self) -> &Aabb {
-        &self.bbox
+    fn bounding_box(&self) -> Aabb {
+        self.bbox
     }
 }
 

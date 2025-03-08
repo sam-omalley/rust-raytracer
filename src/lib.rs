@@ -19,7 +19,7 @@ mod texture;
 mod translate;
 pub mod vec3;
 
-use bvh_node::BvhNode;
+use bvh_node::Bvh;
 use camera::{Camera, Render};
 use colour::Colour;
 use constant_medium::ConstantMedium;
@@ -158,7 +158,7 @@ pub fn bouncing_spheres(render: &Render) {
         1.0,
         material,
     )));
-    let world = BvhNode::new(&world.objects());
+    let world = Bvh::new(&world.objects());
 
     // Camera
     let cam = Camera::new(
@@ -200,7 +200,7 @@ pub fn checkered_spheres(render: &Render) {
             texture: checker.clone(),
         },
     )));
-    let world = BvhNode::new(&world.objects());
+    let world = Bvh::new(&world.objects());
 
     // Camera
     let cam = Camera::new(
@@ -233,7 +233,7 @@ pub fn earth(render: &Render) {
         2.0,
         earth_surface,
     )));
-    let world = BvhNode::new(&world.objects());
+    let world = Bvh::new(&world.objects());
 
     // Camera
     let cam = Camera::new(
@@ -274,7 +274,7 @@ pub fn perlin_spheres(render: &Render) {
             texture: perlin_texture.clone(),
         },
     )));
-    let world = BvhNode::new(&world.objects());
+    let world = Bvh::new(&world.objects());
 
     // Camera
     let cam = Camera::new(
@@ -343,7 +343,7 @@ pub fn quads(render: &Render) {
         Vec3::new(0.0, 0.0, -4.0),
         lower_teal,
     )));
-    let world = BvhNode::new(&world.objects());
+    let world = Bvh::new(&world.objects());
 
     // Camera
     let cam = Camera::new(
@@ -399,7 +399,7 @@ pub fn simple_light(render: &Render) {
         Vec3::new(0.0, 2.0, 0.0),
         difflight.clone(),
     )));
-    let world = BvhNode::new(&world.objects());
+    let world = Bvh::new(&world.objects());
 
     // Camera
     let cam = Camera::new(
@@ -488,7 +488,7 @@ pub fn cornell_box(render: &Render) {
     let box2 = Arc::new(RotateY::new(box2, -18.0));
     let box2 = Arc::new(Translate::new(box2, Vec3::newi(130, 0, 65)));
     world.add(box2);
-    let world = BvhNode::new(&world.objects());
+    let world = Bvh::new(&world.objects());
 
     // Camera
     let cam = Camera::new(
@@ -585,7 +585,7 @@ pub fn cornell_smoke(render: &Render) {
         0.01,
         Colour::fill(1.0).into(),
     )));
-    let world = BvhNode::new(&world.objects());
+    let world = Bvh::new(&world.objects());
 
     // Camera
     let cam = Camera::new(
@@ -726,7 +726,7 @@ pub fn final_scene(render: &Render) {
     let boxes2 = Arc::new(Translate::new(boxes2, Vec3::newi(-100, 270, 395)));
     world.add(boxes2);
 
-    let world = BvhNode::new(&world.objects());
+    let world = Bvh::new(&world.objects());
 
     // Camera
     let cam = Camera::new(

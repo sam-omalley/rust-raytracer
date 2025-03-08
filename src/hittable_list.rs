@@ -4,12 +4,9 @@ use crate::interval::Interval;
 use crate::material::Material;
 use crate::ray::Ray;
 
-use std::sync::Arc;
-
-#[derive(Default, Clone)]
+#[derive(Default)]
 pub struct HittableList {
-    objects: Vec<Arc<dyn Hittable>>,
-    bbox: Aabb,
+    objects: Vec<Box<dyn Hittable>>,
 }
 
 impl HittableList {
@@ -17,13 +14,8 @@ impl HittableList {
         Default::default()
     }
 
-    pub fn add(&mut self, object: Arc<dyn Hittable>) {
-        self.bbox = Aabb::combine(&self.bbox, object.bounding_box());
-        self.objects.push(object);
-    }
-
-    pub fn objects(&self) -> Vec<Arc<dyn Hittable>> {
-        self.objects.clone()
+    pub fn add(&mut self, object: impl Hittable + 'static) {
+        self.objects.push(Box::new(object));
     }
 }
 
@@ -37,13 +29,23 @@ impl Hittable for HittableList {
                 h.hit(r, Interval::new(ray_t.min(), closest_so_far))
             {
                 closest_so_far = hit_record.t;
-                res = Some((hit_record.clone(), material));
+                res = Some((hit_record, material));
             }
         }
         res
     }
 
-    fn bounding_box(&self) -> &Aabb {
-        &self.bbox
+    // TODO: Update bounding_box() to return Option<Aabb>
+    fn bounding_box(&self) -> Aabb {
+        match self.objects.first() {
+            Some(first) => {
+                let bbox = first.bounding_box();
+                self.objects.iter().skip(1).fold(bbox, |acc, hittable| {
+                    let bbox = hittable.bounding_box();
+                    Aabb::combine(&acc, &bbox)
+                })
+            }
+            _ => Aabb::empty(),
+        }
     }
 }

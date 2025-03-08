@@ -62,7 +62,7 @@ impl Hittable for ConstantMedium {
         Some((rec, &self.phase_function))
     }
 
-    fn bounding_box(&self) -> &Aabb {
+    fn bounding_box(&self) -> Aabb {
         self.boundary.bounding_box()
     }
 }
