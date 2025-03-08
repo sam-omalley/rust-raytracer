@@ -2,10 +2,8 @@ use crate::aabb::Aabb;
 use crate::common;
 use crate::hittable::{HitRecord, Hittable};
 use crate::interval::Interval;
-use crate::material::Material;
 use crate::ray::Ray;
 use crate::vec3::{Point3, Vec3};
-
 
 // TODO: Add Axis rather than hard-code Y-axis.
 #[derive(Debug)]
@@ -58,7 +56,7 @@ impl<H: Hittable> RotateY<H> {
 }
 
 impl<H: Hittable> Hittable for RotateY<H> {
-    fn hit(&self, r: &Ray, ray_t: Interval) -> Option<(HitRecord, &Material)> {
+    fn hit<'a>(&'a self, r: &Ray, ray_t: Interval) -> Option<HitRecord<'a>> {
         // Transform the ray from world space to object space.
         let origin = Point3::new(
             (self.cos_theta * r.origin().x()) - (self.sin_theta * r.origin().z()),
@@ -75,7 +73,7 @@ impl<H: Hittable> Hittable for RotateY<H> {
         let rotated_r = Ray::new_at(origin, direction, r.time());
 
         // Determine whether an intersection exists in object space (and if so, where).
-        if let Some((mut rec, mat)) = self.object.hit(&rotated_r, ray_t) {
+        if let Some(mut rec) = self.object.hit(&rotated_r, ray_t) {
             rec.p = Point3::new(
                 (self.cos_theta * rec.p.x()) + (self.sin_theta * rec.p.z()),
                 rec.p.y(),
@@ -88,7 +86,7 @@ impl<H: Hittable> Hittable for RotateY<H> {
                 (-self.sin_theta * rec.normal.x()) + (self.cos_theta * rec.normal.z()),
             );
 
-            return Some((rec, mat));
+            return Some(rec);
         }
         None
     }

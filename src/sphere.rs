@@ -73,7 +73,7 @@ impl Sphere {
 }
 
 impl Hittable for Sphere {
-    fn hit(&self, r: &Ray, ray_t: Interval) -> Option<(HitRecord, &Material)> {
+    fn hit<'a>(&'a self, r: &Ray, ray_t: Interval) -> Option<HitRecord<'a>> {
         let current_centre = self.centre.at(r.time());
         let oc = r.origin() - current_centre;
         let a = r.direction().length_squared();
@@ -95,14 +95,18 @@ impl Hittable for Sphere {
             }
         }
 
-        let mut rec = HitRecord::new();
-        rec.t = root;
-        rec.p = r.at(rec.t);
-        let outward_normal = (rec.p - current_centre) / self.radius;
-        (rec.u, rec.v) = Sphere::get_uv(&outward_normal);
-        rec.set_face_normal(r, outward_normal);
+        let p = r.at(root);
+        let outward_normal = (p - current_centre) / self.radius;
+        let (u, v) = Sphere::get_uv(&outward_normal);
 
-        Some((rec, &self.material))
+        Some(HitRecord {
+            t: root,
+            p,
+            normal: outward_normal,
+            material: &self.material,
+            u,
+            v,
+        })
     }
 
     fn bounding_box(&self) -> Aabb {

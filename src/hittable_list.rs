@@ -1,7 +1,6 @@
 use crate::aabb::Aabb;
 use crate::hittable::{HitRecord, Hittable};
 use crate::interval::Interval;
-use crate::material::Material;
 use crate::ray::Ray;
 
 #[derive(Default, Debug)]
@@ -20,16 +19,16 @@ impl HittableList {
 }
 
 impl Hittable for HittableList {
-    fn hit(&self, r: &Ray, ray_t: Interval) -> Option<(HitRecord, &Material)> {
+    fn hit<'a>(&'a self, r: &Ray, ray_t: Interval) -> Option<HitRecord<'a>> {
         let mut closest_so_far = ray_t.max();
         let mut res = None;
 
         for h in self.objects.iter() {
-            if let Some((hit_record, material)) =
+            if let Some(hit_record) =
                 h.hit(r, Interval::new(ray_t.min(), closest_so_far))
             {
                 closest_so_far = hit_record.t;
-                res = Some((hit_record, material));
+                res = Some(hit_record);
             }
         }
         res
