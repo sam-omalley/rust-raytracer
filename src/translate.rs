@@ -28,16 +28,15 @@ impl<H: Hittable> Hittable for Translate<H> {
         let offset_r = Ray::new_at(r.origin() - self.offset, r.direction(), r.time());
 
         // Determine whether an intersection exists along the offset ray (amd of so, where)
-        match self.object.hit(&offset_r, ray_t) {
-            None => None,
-            Some(mut rec) => {
-                rec.p += self.offset;
-                Some(rec)
+        self.object.hit(&offset_r, ray_t).map({
+            |hit| HitRecord {
+                p: hit.p + self.offset,
+                ..hit
             }
-        }
+        })
     }
 
-    fn bounding_box(&self) ->Aabb {
+    fn bounding_box(&self) -> Aabb {
         self.bbox
     }
 }

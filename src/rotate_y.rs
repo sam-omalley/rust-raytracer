@@ -57,41 +57,33 @@ impl<H: Hittable> RotateY<H> {
 
 impl<H: Hittable> Hittable for RotateY<H> {
     fn hit<'a>(&'a self, r: &Ray, ray_t: Interval) -> Option<HitRecord<'a>> {
-        // Transform the ray from world space to object space.
-        let origin = Point3::new(
-            (self.cos_theta * r.origin().x()) - (self.sin_theta * r.origin().z()),
-            r.origin().y(),
-            (self.sin_theta * r.origin().x()) + (self.cos_theta * r.origin().z()),
-        );
-
-        let direction = Vec3::new(
-            (self.cos_theta * r.direction().x()) - (self.sin_theta * r.direction().z()),
-            r.direction().y(),
-            (self.sin_theta * r.direction().x()) + (self.cos_theta * r.direction().z()),
-        );
-
-        let rotated_r = Ray::new_at(origin, direction, r.time());
-
-        // Determine whether an intersection exists in object space (and if so, where).
-        if let Some(mut rec) = self.object.hit(&rotated_r, ray_t) {
-            rec.p = Point3::new(
-                (self.cos_theta * rec.p.x()) + (self.sin_theta * rec.p.z()),
-                rec.p.y(),
-                (-self.sin_theta * rec.p.x()) + (self.cos_theta * rec.p.z()),
-            );
-
-            rec.normal = Vec3::new(
-                (self.cos_theta * rec.normal.x()) + (self.sin_theta * rec.normal.z()),
-                rec.p.y(),
-                (-self.sin_theta * rec.normal.x()) + (self.cos_theta * rec.normal.z()),
-            );
-
-            return Some(rec);
+        fn rot(p: Vec3, sin_theta: f32, cos_theta: f32) -> Vec3 {
+            Vec3::new(
+                p.dot(Vec3::new(cos_theta, 0.0, sin_theta)),
+                p.dot(Vec3::new(0.0, 1.0, 0.0)),
+                p.dot(Vec3::new(-sin_theta, 0.0, cos_theta)),
+            )
         }
-        None
+
+        let rot_ray = Ray {
+            orig: rot(r.orig, -self.sin_theta, self.cos_theta),
+            dir: rot(r.dir, -self.sin_theta, self.cos_theta),
+            ..*r
+        };
+
+        self.object.hit(&rot_ray, ray_t).map(|hit| HitRecord {
+            p: rot(hit.p, self.sin_theta, self.cos_theta),
+            normal: rot(hit.normal, self.sin_theta, self.cos_theta),
+            ..hit
+        })
     }
 
     fn bounding_box(&self) -> Aabb {
         self.bbox
     }
+}
+
+#[inline]
+pub fn rotate_y<H: Hittable>(degrees: f32, object: H) -> RotateY<H> {
+    RotateY::new(object, degrees)
 }
