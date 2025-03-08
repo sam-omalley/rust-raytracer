@@ -9,7 +9,7 @@ use crate::{common, vec3};
 pub enum Material {
     Lambertian { texture: Texture },
     Metal { albedo: Colour, fuzziness: f64 },
-    Dialectric { refraction: f64 },
+    Dielectric { refraction: f64 },
     DiffuseLight { texture: Texture },
     Isotropic { texture: Texture },
 }
@@ -51,7 +51,7 @@ impl Material {
                     Some((*albedo, scattered))
                 }
             }
-            Material::Dialectric { refraction } => {
+            Material::Dielectric { refraction } => {
                 let (outward_normal, ni_over_nt, cosine) = if r_in.direction().dot(rec.normal) > 0.0
                 {
                     (
