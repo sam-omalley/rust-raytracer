@@ -117,20 +117,20 @@ pub fn bouncing_spheres(render: &Render) {
                     world.push(Box::new(Sphere::stationary(center, 0.2, sphere_material)));
                 } else {
                     // Glass
-                    let sphere_material = Material::Dialectric { refraction: 1.5 };
+                    let sphere_material = Material::Dielectric { refraction: 1.5 };
                     world.push(Box::new(Sphere::stationary(center, 0.2, sphere_material)));
                 }
             }
         }
     }
 
-    let material = Material::Dialectric { refraction: 1.5 };
+    let material = Material::Dielectric { refraction: 1.5 };
     world.push(Box::new(Sphere::stationary(
         Point3::new(0.0, 1.0, 0.0),
         1.0,
         material,
     )));
-    let material = Material::Dialectric {
+    let material = Material::Dielectric {
         refraction: 1.0 / 1.5,
     };
     world.push(Box::new(Sphere::stationary(
@@ -646,7 +646,7 @@ pub fn final_scene(render: &Render) {
     world.push(Box::new(Sphere::stationary(
         Point3::newi(260, 150, 45),
         50.0,
-        Material::Dialectric { refraction: 1.5 },
+        Material::Dielectric { refraction: 1.5 },
     )));
     world.push(Box::new(Sphere::stationary(
         Point3::newi(0, 150, 145),
@@ -660,13 +660,13 @@ pub fn final_scene(render: &Render) {
     world.push(Box::new(Sphere::stationary(
         Point3::newi(360, 150, 145),
         70.0,
-        Material::Dialectric { refraction: 1.5 },
+        Material::Dielectric { refraction: 1.5 },
     )));
     world.push(Box::new(ConstantMedium::new(
         Sphere::stationary(
             Point3::newi(360, 150, 145),
             70.0,
-            Material::Dialectric { refraction: 1.5 },
+            Material::Dielectric { refraction: 1.5 },
         ),
         0.2,
         Colour::new(0.2, 0.4, 0.9).into(),
@@ -674,7 +674,7 @@ pub fn final_scene(render: &Render) {
     let boundary = Sphere::stationary(
         Point3::zero(),
         5000.0,
-        Material::Dialectric { refraction: 1.5 },
+        Material::Dielectric { refraction: 1.5 },
     );
     world.push(Box::new(ConstantMedium::new(
         boundary,
