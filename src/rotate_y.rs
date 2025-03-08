@@ -6,17 +6,17 @@ use crate::material::Material;
 use crate::ray::Ray;
 use crate::vec3::{Point3, Vec3};
 
-use std::sync::Arc;
 
-pub struct RotateY {
-    object: Arc<dyn Hittable>,
+// TODO: Add Axis rather than hard-code Y-axis.
+pub struct RotateY<H: Hittable> {
+    object: H,
     bbox: Aabb,
     sin_theta: f64,
     cos_theta: f64,
 }
 
-impl RotateY {
-    pub fn new(object: Arc<dyn Hittable>, angle: f64) -> Self {
+impl<H: Hittable> RotateY<H> {
+    pub fn new(object: H, angle: f64) -> Self {
         let radians = common::degrees_to_radians(angle);
         let sin_theta = f64::sin(radians);
         let cos_theta = f64::cos(radians);
@@ -56,7 +56,7 @@ impl RotateY {
     }
 }
 
-impl Hittable for RotateY {
+impl<H: Hittable> Hittable for RotateY<H> {
     fn hit(&self, r: &Ray, ray_t: Interval) -> Option<(HitRecord, &Material)> {
         // Transform the ray from world space to object space.
         let origin = Point3::new(
