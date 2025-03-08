@@ -23,6 +23,7 @@ use bvh_node::Bvh;
 use camera::{Camera, Render};
 use colour::Colour;
 use constant_medium::ConstantMedium;
+use hittable::Hittable;
 use hittable_list::HittableList;
 use material::Material;
 use perlin::Perlin;
@@ -32,8 +33,6 @@ use sphere::Sphere;
 use texture::Texture;
 use translate::Translate;
 use vec3::{Point3, Vec3};
-
-use std::sync::Arc;
 
 // Image
 const ASPECT_RATIO: f64 = 16.0 / 9.0;
@@ -71,7 +70,7 @@ pub const FINAL_RENDER: Render = Render {
 
 pub fn bouncing_spheres(render: &Render) {
     // World
-    let mut world = HittableList::new();
+    let mut world: Vec<Box<dyn Hittable>> = Vec::new();
 
     let ground_material = Material::Lambertian {
         texture: Texture::Checker {
@@ -81,7 +80,7 @@ pub fn bouncing_spheres(render: &Render) {
         },
     };
 
-    world.add(Arc::new(Sphere::stationary(
+    world.push(Box::new(Sphere::stationary(
         Point3::new(0.0, -1000.0, 0.0),
         1000.0,
         ground_material,
@@ -105,28 +104,28 @@ pub fn bouncing_spheres(render: &Render) {
                     };
                     let centre2 =
                         center + Point3::new(0.0, common::random_double_range(0.0, 0.5), 0.0);
-                    world.add(Arc::new(Sphere::moving(
+                    world.push(Box::new(Sphere::moving(
                         (center, centre2),
                         0.2,
                         sphere_material,
                     )));
                 } else if choose_mat < 0.95 {
-                    // Metal
+                    // Meta
                     let albedo = Colour::random_range(0.5, 1.0);
                     let fuzziness = common::random_double_range(0.0, 0.5);
                     let sphere_material = Material::Metal { albedo, fuzziness };
-                    world.add(Arc::new(Sphere::stationary(center, 0.2, sphere_material)));
+                    world.push(Box::new(Sphere::stationary(center, 0.2, sphere_material)));
                 } else {
                     // Glass
                     let sphere_material = Material::Dialectric { refraction: 1.5 };
-                    world.add(Arc::new(Sphere::stationary(center, 0.2, sphere_material)));
+                    world.push(Box::new(Sphere::stationary(center, 0.2, sphere_material)));
                 }
             }
         }
     }
 
     let material = Material::Dialectric { refraction: 1.5 };
-    world.add(Arc::new(Sphere::stationary(
+    world.push(Box::new(Sphere::stationary(
         Point3::new(0.0, 1.0, 0.0),
         1.0,
         material,
@@ -134,7 +133,7 @@ pub fn bouncing_spheres(render: &Render) {
     let material = Material::Dialectric {
         refraction: 1.0 / 1.5,
     };
-    world.add(Arc::new(Sphere::stationary(
+    world.push(Box::new(Sphere::stationary(
         Point3::new(0.0, 1.0, 0.0),
         0.9,
         material,
@@ -143,7 +142,7 @@ pub fn bouncing_spheres(render: &Render) {
     let material = Material::Lambertian {
         texture: Colour::new(0.4, 0.2, 0.1).into(),
     };
-    world.add(Arc::new(Sphere::stationary(
+    world.push(Box::new(Sphere::stationary(
         Point3::new(-4.0, 1.0, 0.0),
         1.0,
         material,
@@ -153,12 +152,12 @@ pub fn bouncing_spheres(render: &Render) {
         albedo: Colour::new(0.7, 0.6, 0.5),
         fuzziness: 0.0,
     };
-    world.add(Arc::new(Sphere::stationary(
+    world.push(Box::new(Sphere::stationary(
         Point3::new(4.0, 1.0, 0.0),
         1.0,
         material,
     )));
-    let world = Bvh::new(&world.objects());
+    let world = Bvh::new(world);
 
     // Camera
     let cam = Camera::new(
@@ -177,7 +176,7 @@ pub fn bouncing_spheres(render: &Render) {
 
 pub fn checkered_spheres(render: &Render) {
     // World
-    let mut world = HittableList::new();
+    let mut world: Vec<Box<dyn Hittable>> = Vec::new();
 
     let checker = Texture::Checker {
         scale: Vec3::fill(0.32),
@@ -185,7 +184,7 @@ pub fn checkered_spheres(render: &Render) {
         odd: Box::new(Colour::new(0.9, 0.9, 0.9).into()),
     };
 
-    world.add(Arc::new(Sphere::stationary(
+    world.push(Box::new(Sphere::stationary(
         Point3::new(0.0, -10.0, 0.0),
         10.0,
         Material::Lambertian {
@@ -193,14 +192,14 @@ pub fn checkered_spheres(render: &Render) {
         },
     )));
 
-    world.add(Arc::new(Sphere::stationary(
+    world.push(Box::new(Sphere::stationary(
         Point3::new(0.0, 10.0, 0.0),
         10.0,
         Material::Lambertian {
             texture: checker.clone(),
         },
     )));
-    let world = Bvh::new(&world.objects());
+    let world = Bvh::new(world);
 
     // Camera
     let cam = Camera::new(
@@ -219,7 +218,7 @@ pub fn checkered_spheres(render: &Render) {
 
 pub fn earth(render: &Render) {
     // World
-    let mut world = HittableList::new();
+    let mut world: Vec<Box<dyn Hittable>> = Vec::new();
 
     let earth_texture = Texture::Image {
         image: texture::load_image("earthmap.jpg"),
@@ -228,12 +227,12 @@ pub fn earth(render: &Render) {
         texture: earth_texture,
     };
 
-    world.add(Arc::new(Sphere::stationary(
+    world.push(Box::new(Sphere::stationary(
         Point3::zero(),
         2.0,
         earth_surface,
     )));
-    let world = Bvh::new(&world.objects());
+    let world = Bvh::new(world);
 
     // Camera
     let cam = Camera::new(
@@ -252,14 +251,14 @@ pub fn earth(render: &Render) {
 
 pub fn perlin_spheres(render: &Render) {
     // World
-    let mut world = HittableList::new();
+    let mut world: Vec<Box<dyn Hittable>> = Vec::new();
 
     let perlin_texture = Texture::Noise {
         noise: Box::new(Perlin::new()),
         scale: 4.0,
     };
 
-    world.add(Arc::new(Sphere::stationary(
+    world.push(Box::new(Sphere::stationary(
         Point3::new(0.0, -1000.0, 0.0),
         1000.0,
         Material::Lambertian {
@@ -267,14 +266,14 @@ pub fn perlin_spheres(render: &Render) {
         },
     )));
 
-    world.add(Arc::new(Sphere::stationary(
+    world.push(Box::new(Sphere::stationary(
         Point3::new(0.0, 2.0, 0.0),
         2.0,
         Material::Lambertian {
             texture: perlin_texture.clone(),
         },
     )));
-    let world = Bvh::new(&world.objects());
+    let world = Bvh::new(world);
 
     // Camera
     let cam = Camera::new(
@@ -293,7 +292,7 @@ pub fn perlin_spheres(render: &Render) {
 
 pub fn quads(render: &Render) {
     // World
-    let mut world = HittableList::new();
+    let mut world: Vec<Box<dyn Hittable>> = Vec::new();
 
     // Materials
     let left_red = Material::Lambertian {
@@ -313,37 +312,37 @@ pub fn quads(render: &Render) {
     };
 
     // Quads
-    world.add(Arc::new(Quad::new(
+    world.push(Box::new(Quad::new(
         Point3::new(-3.0, -2.0, 5.0),
         Vec3::new(0.0, 0.0, -4.0),
         Vec3::new(0.0, 4.0, 0.0),
         left_red,
     )));
-    world.add(Arc::new(Quad::new(
+    world.push(Box::new(Quad::new(
         Point3::new(-2.0, -2.0, 0.0),
         Vec3::new(4.0, 0.0, 0.0),
         Vec3::new(0.0, 4.0, 0.0),
         back_green,
     )));
-    world.add(Arc::new(Quad::new(
+    world.push(Box::new(Quad::new(
         Point3::new(3.0, -2.0, 1.0),
         Vec3::new(0.0, 0.0, 4.0),
         Vec3::new(0.0, 4.0, 0.0),
         right_blue,
     )));
-    world.add(Arc::new(Quad::new(
+    world.push(Box::new(Quad::new(
         Point3::new(-2.0, 3.0, 1.0),
         Vec3::new(4.0, 0.0, 0.0),
         Vec3::new(0.0, 0.0, 4.0),
         upper_orange,
     )));
-    world.add(Arc::new(Quad::new(
+    world.push(Box::new(Quad::new(
         Point3::new(-2.0, -3.0, 5.0),
         Vec3::new(4.0, 0.0, 0.0),
         Vec3::new(0.0, 0.0, -4.0),
         lower_teal,
     )));
-    let world = Bvh::new(&world.objects());
+    let world = Bvh::new(world);
 
     // Camera
     let cam = Camera::new(
@@ -362,14 +361,14 @@ pub fn quads(render: &Render) {
 
 pub fn simple_light(render: &Render) {
     // World
-    let mut world = HittableList::new();
+    let mut world: Vec<Box<dyn Hittable>> = Vec::new();
 
     let perlin_texture = Texture::Noise {
         noise: Box::new(Perlin::new()),
         scale: 4.0,
     };
 
-    world.add(Arc::new(Sphere::stationary(
+    world.push(Box::new(Sphere::stationary(
         Point3::new(0.0, -1000.0, 0.0),
         1000.0,
         Material::Lambertian {
@@ -377,7 +376,7 @@ pub fn simple_light(render: &Render) {
         },
     )));
 
-    world.add(Arc::new(Sphere::stationary(
+    world.push(Box::new(Sphere::stationary(
         Point3::new(0.0, 2.0, 0.0),
         2.0,
         Material::Lambertian {
@@ -388,18 +387,18 @@ pub fn simple_light(render: &Render) {
     let difflight = Material::DiffuseLight {
         texture: Colour::new(4.0, 4.0, 4.0).into(),
     };
-    world.add(Arc::new(Sphere::stationary(
+    world.push(Box::new(Sphere::stationary(
         Point3::new(0.0, 7.0, 0.0),
         2.0,
         difflight.clone(),
     )));
-    world.add(Arc::new(Quad::new(
+    world.push(Box::new(Quad::new(
         Point3::new(3.0, 1.0, -2.0),
         Vec3::new(2.0, 0.0, 0.0),
         Vec3::new(0.0, 2.0, 0.0),
         difflight.clone(),
     )));
-    let world = Bvh::new(&world.objects());
+    let world = Bvh::new(world);
 
     // Camera
     let cam = Camera::new(
@@ -418,7 +417,7 @@ pub fn simple_light(render: &Render) {
 
 pub fn cornell_box(render: &Render) {
     // World
-    let mut world = HittableList::new();
+    let mut world: Vec<Box<dyn Hittable>> = Vec::new();
 
     let red = Material::Lambertian {
         texture: Colour::new(0.65, 0.05, 0.05).into(),
@@ -433,62 +432,58 @@ pub fn cornell_box(render: &Render) {
         texture: Colour::fill(15.0).into(),
     };
 
-    world.add(Arc::new(Quad::new(
+    world.push(Box::new(Quad::new(
         Point3::new(555.0, 0.0, 0.0),
         Vec3::new(0.0, 555.0, 0.0),
         Vec3::new(0.0, 0.0, 555.0),
         green,
     )));
 
-    world.add(Arc::new(Quad::new(
+    world.push(Box::new(Quad::new(
         Point3::zero(),
         Vec3::new(0.0, 555.0, 0.0),
         Vec3::new(0.0, 0.0, 555.0),
         red,
     )));
 
-    world.add(Arc::new(Quad::new(
+    world.push(Box::new(Quad::new(
         Point3::new(343.0, 554.0, 332.0),
         Vec3::new(-130.0, 0.0, 0.0),
         Vec3::new(0.0, 0.0, -105.0),
         light.clone(),
     )));
 
-    world.add(Arc::new(Quad::new(
+    world.push(Box::new(Quad::new(
         Point3::zero(),
         Vec3::new(555.0, 0.0, 0.0),
         Vec3::new(0.0, 0.0, 555.0),
         white.clone(),
     )));
 
-    world.add(Arc::new(Quad::new(
+    world.push(Box::new(Quad::new(
         Point3::fill(555.0),
         Vec3::new(-555.0, 0.0, 0.0),
         Vec3::new(0.0, 0.0, -555.0),
         white.clone(),
     )));
 
-    world.add(Arc::new(Quad::new(
+    world.push(Box::new(Quad::new(
         Point3::new(0.0, 0.0, 555.0),
         Vec3::new(555.0, 0.0, 0.0),
         Vec3::new(0.0, 555.0, 0.0),
         white.clone(),
     )));
 
-    let box1 = Arc::new(quad_box(
-        Point3::zero(),
-        Point3::newi(165, 330, 165),
-        white.clone(),
-    ));
-    let box1 = Arc::new(RotateY::new(box1, 15.0));
-    let box1 = Arc::new(Translate::new(box1, Vec3::newi(265, 0, 200)));
-    world.add(box1);
+    let box1 = quad_box(Point3::zero(), Point3::newi(165, 330, 165), white.clone());
+    let box1 = RotateY::new(box1, 15.0);
+    let box1 = Translate::new(box1, Vec3::newi(265, 0, 200));
+    world.push(Box::new(box1));
 
-    let box2 = Arc::new(quad_box(Point3::zero(), Point3::fill(165.0), white.clone()));
-    let box2 = Arc::new(RotateY::new(box2, -18.0));
-    let box2 = Arc::new(Translate::new(box2, Vec3::newi(130, 0, 65)));
-    world.add(box2);
-    let world = Bvh::new(&world.objects());
+    let box2 = quad_box(Point3::zero(), Point3::fill(165.0), white.clone());
+    let box2 = RotateY::new(box2, -18.0);
+    let box2 = Translate::new(box2, Vec3::newi(130, 0, 65));
+    world.push(Box::new(box2));
+    let world = Bvh::new(world);
 
     // Camera
     let cam = Camera::new(
@@ -507,7 +502,7 @@ pub fn cornell_box(render: &Render) {
 
 pub fn cornell_smoke(render: &Render) {
     // World
-    let mut world = HittableList::new();
+    let mut world: Vec<Box<dyn Hittable>> = Vec::new();
 
     let red = Material::Lambertian {
         texture: Colour::new(0.65, 0.05, 0.05).into(),
@@ -522,70 +517,67 @@ pub fn cornell_smoke(render: &Render) {
         texture: Colour::fill(7.0).into(),
     };
 
-    world.add(Arc::new(Quad::new(
+    world.push(Box::new(Quad::new(
         Point3::newi(555, 0, 0),
         Vec3::newi(0, 555, 0),
         Vec3::newi(0, 0, 555),
         green,
     )));
 
-    world.add(Arc::new(Quad::new(
+    world.push(Box::new(Quad::new(
         Point3::zero(),
         Vec3::newi(0, 555, 0),
         Vec3::newi(0, 0, 555),
         red,
     )));
 
-    world.add(Arc::new(Quad::new(
+    world.push(Box::new(Quad::new(
         Point3::newi(113, 554, 127),
         Vec3::newi(330, 0, 0),
         Vec3::newi(0, 0, 305),
         light.clone(),
     )));
 
-    world.add(Arc::new(Quad::new(
+    world.push(Box::new(Quad::new(
         Point3::newi(0, 555, 0),
         Vec3::newi(555, 0, 0),
         Vec3::newi(0, 0, 555),
         white.clone(),
     )));
 
-    world.add(Arc::new(Quad::new(
+    world.push(Box::new(Quad::new(
         Point3::zero(),
         Vec3::newi(555, 0, 0),
         Vec3::newi(0, 0, 555),
         white.clone(),
     )));
 
-    world.add(Arc::new(Quad::new(
+    world.push(Box::new(Quad::new(
         Point3::newi(0, 0, 555),
         Vec3::newi(555, 0, 0),
         Vec3::newi(0, 555, 0),
         white.clone(),
     )));
 
-    let box1 = Arc::new(quad_box(
-        Point3::zero(),
-        Point3::newi(165, 330, 165),
-        white.clone(),
-    ));
-    let box1 = Arc::new(RotateY::new(box1, 15.0));
-    let box1 = Arc::new(Translate::new(box1, Vec3::newi(265, 0, 295)));
-    world.add(Arc::new(ConstantMedium::new(
+    let box1 = quad_box(Point3::zero(), Point3::newi(165, 330, 165), white.clone());
+    let box1 = RotateY::new(box1, 15.0);
+    let box1 = Translate::new(box1, Vec3::newi(265, 0, 295));
+    world.push(Box::new(ConstantMedium::new(
         box1,
         0.01,
         Colour::fill(0.0).into(),
     )));
 
-    let box2 = Arc::new(quad_box(Point3::zero(), Point3::fill(165.0), white.clone()));
-    let box2 = Arc::new(RotateY::new(box2, -18.0));
-    let box2 = Arc::new(Translate::new(box2, Vec3::newi(130, 0, 65)));
-    world.add(Arc::new(ConstantMedium::new(
+    let box2 = quad_box(Point3::zero(), Point3::fill(165.0), white.clone());
+    let box2 = RotateY::new(box2, -18.0);
+    let box2 = Translate::new(box2, Vec3::newi(130, 0, 65));
+    world.push(Box::new(ConstantMedium::new(
         box2,
         0.01,
         Colour::fill(1.0).into(),
     )));
-    let world = Bvh::new(&world.objects());
+
+    let world = Bvh::new(world);
 
     // Camera
     let cam = Camera::new(
@@ -619,21 +611,21 @@ pub fn final_scene(render: &Render) {
             let y1 = common::random_double_range(1.0, 101.0);
             let z1 = z0 + w;
 
-            boxes1.add(Arc::new(quad_box(
+            boxes1.push(quad_box(
                 Point3::new(x0, y0, z0),
                 Point3::new(x1, y1, z1),
                 ground.clone(),
-            )));
+            ));
         }
     }
 
-    let mut world = HittableList::new();
-    world.add(Arc::new(boxes1));
+    let mut world: Vec<Box<dyn Hittable>> = Vec::new();
+    world.push(Box::new(boxes1));
 
     let light = Material::DiffuseLight {
         texture: Colour::fill(7.0).into(),
     };
-    world.add(Arc::new(Quad::new(
+    world.push(Box::new(Quad::new(
         Point3::newi(123, 553, 147),
         Vec3::newi(300, 0, 0),
         Vec3::newi(0, 0, 265),
@@ -645,18 +637,18 @@ pub fn final_scene(render: &Render) {
     let sphere_material = Material::Lambertian {
         texture: Colour::new(0.7, 0.3, 0.1).into(),
     };
-    world.add(Arc::new(Sphere::moving(
+    world.push(Box::new(Sphere::moving(
         (center1, center2),
         50.0,
         sphere_material,
     )));
 
-    world.add(Arc::new(Sphere::stationary(
+    world.push(Box::new(Sphere::stationary(
         Point3::newi(260, 150, 45),
         50.0,
         Material::Dialectric { refraction: 1.5 },
     )));
-    world.add(Arc::new(Sphere::stationary(
+    world.push(Box::new(Sphere::stationary(
         Point3::newi(0, 150, 145),
         50.0,
         Material::Metal {
@@ -665,23 +657,26 @@ pub fn final_scene(render: &Render) {
         },
     )));
 
-    let boundary = Arc::new(Sphere::stationary(
+    world.push(Box::new(Sphere::stationary(
         Point3::newi(360, 150, 145),
         70.0,
         Material::Dialectric { refraction: 1.5 },
-    ));
-    world.add(boundary.clone());
-    world.add(Arc::new(ConstantMedium::new(
-        boundary,
+    )));
+    world.push(Box::new(ConstantMedium::new(
+        Sphere::stationary(
+            Point3::newi(360, 150, 145),
+            70.0,
+            Material::Dialectric { refraction: 1.5 },
+        ),
         0.2,
         Colour::new(0.2, 0.4, 0.9).into(),
     )));
-    let boundary = Arc::new(Sphere::stationary(
+    let boundary = Sphere::stationary(
         Point3::zero(),
         5000.0,
         Material::Dialectric { refraction: 1.5 },
-    ));
-    world.add(Arc::new(ConstantMedium::new(
+    );
+    world.push(Box::new(ConstantMedium::new(
         boundary,
         0.0001,
         Colour::fill(1.0).into(),
@@ -692,7 +687,7 @@ pub fn final_scene(render: &Render) {
             image: texture::load_image("earthmap.jpg"),
         },
     };
-    world.add(Arc::new(Sphere::stationary(
+    world.push(Box::new(Sphere::stationary(
         Point3::newi(400, 200, 400),
         100.0,
         emat,
@@ -701,7 +696,7 @@ pub fn final_scene(render: &Render) {
         noise: Box::new(Perlin::new()),
         scale: 4.0,
     };
-    world.add(Arc::new(Sphere::stationary(
+    world.push(Box::new(Sphere::stationary(
         Point3::newi(220, 280, 300),
         80.0,
         Material::Lambertian {
@@ -715,18 +710,18 @@ pub fn final_scene(render: &Render) {
     };
     let ns = 1000;
     for _ in 0..ns {
-        boxes2.add(Arc::new(Sphere::stationary(
+        boxes2.push(Sphere::stationary(
             Point3::random_range(0.0, 165.0),
             10.0,
             white.clone(),
-        )));
+        ));
     }
 
-    let boxes2 = Arc::new(RotateY::new(Arc::new(boxes2), 15.0));
-    let boxes2 = Arc::new(Translate::new(boxes2, Vec3::newi(-100, 270, 395)));
-    world.add(boxes2);
+    let boxes2 = RotateY::new(boxes2, 15.0);
+    let boxes2 = Translate::new(boxes2, Vec3::newi(-100, 270, 395));
+    world.push(Box::new(boxes2));
 
-    let world = Bvh::new(&world.objects());
+    let world = Bvh::new(world);
 
     // Camera
     let cam = Camera::new(

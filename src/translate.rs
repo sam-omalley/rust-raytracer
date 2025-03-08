@@ -5,16 +5,14 @@ use crate::material::Material;
 use crate::ray::Ray;
 use crate::vec3::Vec3;
 
-use std::sync::Arc;
-
-pub struct Translate {
-    object: Arc<dyn Hittable>,
+pub struct Translate<H: Hittable> {
+    object: H,
     offset: Vec3,
     bbox: Aabb,
 }
 
-impl Translate {
-    pub fn new(object: Arc<dyn Hittable>, offset: Vec3) -> Self {
+impl<H: Hittable> Translate<H> {
+    pub fn new(object: H, offset: Vec3) -> Self {
         let bbox = object.bounding_box() + offset;
         Self {
             object,
@@ -24,7 +22,7 @@ impl Translate {
     }
 }
 
-impl Hittable for Translate {
+impl<H: Hittable> Hittable for Translate<H> {
     fn hit(&self, r: &Ray, ray_t: Interval) -> Option<(HitRecord, &Material)> {
         // Move the ray backwards by the offset
         let offset_r = Ray::new_at(r.origin() - self.offset, r.direction(), r.time());

@@ -6,8 +6,6 @@ use crate::material::Material;
 use crate::ray::Ray;
 use crate::vec3::{Point3, Vec3, cross, dot, unit_vector};
 
-use std::sync::Arc;
-
 pub struct Quad {
     q: Point3,
     u: Vec3,
@@ -115,47 +113,47 @@ pub fn quad_box(a: Point3, b: Point3, material: Material) -> HittableList {
     let dz = Vec3::new(0.0, 0.0, max.z() - min.z());
 
     // Front
-    sides.add(Arc::new(Quad::new(
+    sides.push(Quad::new(
         Point3::new(min.x(), min.y(), max.z()),
         dx,
         dy,
         material.clone(),
-    )));
+    ));
     // Right
-    sides.add(Arc::new(Quad::new(
+    sides.push(Quad::new(
         Point3::new(max.x(), min.y(), max.z()),
         -dz,
         dy,
         material.clone(),
-    )));
+    ));
     // Back
-    sides.add(Arc::new(Quad::new(
+    sides.push(Quad::new(
         Point3::new(max.x(), min.y(), min.z()),
         -dx,
         dy,
         material.clone(),
-    )));
+    ));
     // Left
-    sides.add(Arc::new(Quad::new(
+    sides.push(Quad::new(
         Point3::new(min.x(), min.y(), min.z()),
         dz,
         dy,
         material.clone(),
-    )));
+    ));
     // Top
-    sides.add(Arc::new(Quad::new(
+    sides.push(Quad::new(
         Point3::new(min.x(), max.y(), max.z()),
         dx,
         -dz,
         material.clone(),
-    )));
+    ));
     // Bottom
-    sides.add(Arc::new(Quad::new(
+    sides.push(Quad::new(
         Point3::new(min.x(), min.y(), min.z()),
         dx,
         dz,
         material.clone(),
-    )));
+    ));
 
     sides
 }

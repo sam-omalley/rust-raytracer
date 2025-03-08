@@ -7,16 +7,14 @@ use crate::ray::Ray;
 use crate::texture::Texture;
 use crate::vec3::Vec3;
 
-use std::sync::Arc;
-
-pub struct ConstantMedium {
-    boundary: Arc<dyn Hittable>,
+pub struct ConstantMedium<H: Hittable> {
+    boundary: H,
     neg_inv_density: f64,
     phase_function: Material,
 }
 
-impl ConstantMedium {
-    pub fn new(boundary: Arc<dyn Hittable>, density: f64, texture: Texture) -> Self {
+impl<H: Hittable> ConstantMedium<H> {
+    pub fn new(boundary: H, density: f64, texture: Texture) -> Self {
         Self {
             boundary,
             neg_inv_density: -1.0 / density,
@@ -25,7 +23,7 @@ impl ConstantMedium {
     }
 }
 
-impl Hittable for ConstantMedium {
+impl<H: Hittable> Hittable for ConstantMedium<H> {
     fn hit(&self, r: &Ray, ray_t: Interval) -> Option<(HitRecord, &Material)> {
         let (mut rec1, _) = self.boundary.hit(r, Interval::universe())?;
         let (mut rec2, _) = self
