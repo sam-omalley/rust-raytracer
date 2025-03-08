@@ -19,7 +19,7 @@ pub fn degrees_to_radians(degrees: f32) -> f32 {
 }
 
 #[inline]
-pub fn random_double() -> f32 {
+pub fn random_float() -> f32 {
     RNG.with(|rng| rng.borrow_mut().random())
 }
 
@@ -29,9 +29,9 @@ pub fn random_int(min: i32, max: i32) -> i32 {
 }
 
 #[inline]
-pub fn random_double_range(min: f32, max: f32) -> f32 {
+pub fn random_float_range(min: f32, max: f32) -> f32 {
     // Return a random real in [min, max)
-    min + (max - min) * random_double()
+    min + (max - min) * random_float()
 }
 
 #[inline]

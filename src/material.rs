@@ -70,7 +70,7 @@ impl Material {
                 };
 
                 let direction = vec3::refract(r_in.direction(), outward_normal, ni_over_nt)
-                    .filter(|_| common::random_double() >= reflectance(cosine, *refraction))
+                    .filter(|_| common::random_float() >= reflectance(cosine, *refraction))
                     .unwrap_or_else(|| vec3::reflect(r_in.direction(), rec.normal));
 
                 let attenuation = Colour::fill(1.0);

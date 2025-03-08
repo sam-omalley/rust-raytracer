@@ -86,11 +86,11 @@ pub fn bouncing_spheres(render: &Render) {
 
     for a in -11..11 {
         for b in -11..11 {
-            let choose_mat = common::random_double();
+            let choose_mat = common::random_float();
             let center = Point3::new(
-                a as f32 + 0.9 * common::random_double(),
+                a as f32 + 0.9 * common::random_float(),
                 0.2,
-                b as f32 + 0.9 * common::random_double(),
+                b as f32 + 0.9 * common::random_float(),
             );
 
             if (center - Point3::new(4.0, 0.2, 0.0)).length() > 0.9 {
@@ -101,7 +101,7 @@ pub fn bouncing_spheres(render: &Render) {
                         texture: albedo.into(),
                     };
                     let centre2 =
-                        center + Point3::new(0.0, common::random_double_range(0.0, 0.5), 0.0);
+                        center + Point3::new(0.0, common::random_float_range(0.0, 0.5), 0.0);
                     world.push(Box::new(Sphere::moving(
                         (center, centre2),
                         0.2,
@@ -110,7 +110,7 @@ pub fn bouncing_spheres(render: &Render) {
                 } else if choose_mat < 0.95 {
                     // Meta
                     let albedo = Colour::random_range(0.5, 1.0);
-                    let fuzziness = common::random_double_range(0.0, 0.5);
+                    let fuzziness = common::random_float_range(0.0, 0.5);
                     let sphere_material = Material::Metal { albedo, fuzziness };
                     world.push(Box::new(Sphere::stationary(center, 0.2, sphere_material)));
                 } else {
@@ -606,7 +606,7 @@ pub fn final_scene(render: &Render) {
             let z0 = -1000.0 + j as f32 * w;
             let y0 = 0.0;
             let x1 = x0 + w;
-            let y1 = common::random_double_range(1.0, 101.0);
+            let y1 = common::random_float_range(1.0, 101.0);
             let z1 = z0 + w;
 
             boxes1.push(Box::new(quad_box(

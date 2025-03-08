@@ -89,8 +89,8 @@ impl Camera {
 
                 let mut pixel_colour = Colour::new(0.0, 0.0, 0.0);
                 for _ in 0..render.samples_per_pixel {
-                    let u = (i as f32 + common::random_double()) / (render.width - 1) as f32;
-                    let v = (j as f32 + common::random_double()) / (height - 1) as f32;
+                    let u = (i as f32 + common::random_float()) / (render.width - 1) as f32;
+                    let v = (j as f32 + common::random_float()) / (height - 1) as f32;
                     let r = self.get_ray(u, v);
                     pixel_colour += self.ray_colour(&r, world, render.max_depth);
                 }
@@ -112,7 +112,7 @@ impl Camera {
         // directed at a randomly sampled point around the pixel location.
         let rd = self.lens_radius * vec3::random_in_unit_disk();
         let offset = self.u * rd.x() + self.v * rd.y();
-        let ray_time = common::random_double();
+        let ray_time = common::random_float();
 
         Ray::new_at(
             self.origin + offset,

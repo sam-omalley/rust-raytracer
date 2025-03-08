@@ -47,7 +47,7 @@ impl<H: Hittable> Hittable for ConstantMedium<H> {
 
         let ray_length = r.direction().length();
         let distance_inside_boundary = (rec2.t - rec1.t) * ray_length;
-        let hit_distance = self.neg_inv_density * common::random_double().ln();
+        let hit_distance = self.neg_inv_density * common::random_float().ln();
 
         if hit_distance > distance_inside_boundary {
             return None;

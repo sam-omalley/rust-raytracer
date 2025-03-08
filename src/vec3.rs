@@ -34,9 +34,9 @@ impl Vec3 {
     pub fn random() -> Self {
         Self {
             e: [
-                common::random_double(),
-                common::random_double(),
-                common::random_double(),
+                common::random_float(),
+                common::random_float(),
+                common::random_float(),
             ],
         }
     }
@@ -45,9 +45,9 @@ impl Vec3 {
     pub fn random_range(min: f32, max: f32) -> Self {
         Self {
             e: [
-                common::random_double_range(min, max),
-                common::random_double_range(min, max),
-                common::random_double_range(min, max),
+                common::random_float_range(min, max),
+                common::random_float_range(min, max),
+                common::random_float_range(min, max),
             ],
         }
     }
@@ -262,8 +262,8 @@ pub fn random_unit_vector() -> Vec3 {
 pub fn random_in_unit_disk() -> Vec3 {
     loop {
         let p = Vec3::new(
-            common::random_double_range(-1.0, 1.0),
-            common::random_double_range(-1.0, 1.0),
+            common::random_float_range(-1.0, 1.0),
+            common::random_float_range(-1.0, 1.0),
             0.0,
         );
         if p.length_squared() >= 1.0 {
