@@ -4,7 +4,7 @@ use crate::interval::Interval;
 use crate::material::Material;
 use crate::ray::Ray;
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct HittableList {
     objects: Vec<Box<dyn Hittable>>,
 }

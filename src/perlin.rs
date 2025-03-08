@@ -3,7 +3,7 @@ use crate::vec3::{Point3, Vec3, dot, random_unit_vector};
 
 const POINT_COUNT: usize = 256;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Perlin {
     randvec: [Vec3; POINT_COUNT],
     perm_x: [i32; POINT_COUNT],

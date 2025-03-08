@@ -5,7 +5,7 @@ use crate::texture::Texture;
 use crate::vec3::random_unit_vector;
 use crate::{common, vec3};
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum Material {
     Lambertian { texture: Texture },
     Metal { albedo: Colour, fuzziness: f64 },
