@@ -20,7 +20,7 @@ impl RotateY {
         let radians = common::degrees_to_radians(angle);
         let sin_theta = f64::sin(radians);
         let cos_theta = f64::cos(radians);
-        let bbox = object.bounding_box().clone();
+        let bbox = object.bounding_box();
 
         let mut min = Point3::fill(common::INFINITY);
         let mut max = Point3::fill(-common::INFINITY);
@@ -92,7 +92,7 @@ impl Hittable for RotateY {
         None
     }
 
-    fn bounding_box(&self) -> &Aabb {
-        &self.bbox
+    fn bounding_box(&self) -> Aabb {
+        self.bbox
     }
 }

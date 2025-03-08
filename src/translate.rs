@@ -15,7 +15,7 @@ pub struct Translate {
 
 impl Translate {
     pub fn new(object: Arc<dyn Hittable>, offset: Vec3) -> Self {
-        let bbox = object.bounding_box().clone() + offset;
+        let bbox = object.bounding_box() + offset;
         Self {
             object,
             offset,
@@ -39,7 +39,7 @@ impl Hittable for Translate {
         }
     }
 
-    fn bounding_box(&self) -> &Aabb {
-        &self.bbox
+    fn bounding_box(&self) ->Aabb {
+        self.bbox
     }
 }

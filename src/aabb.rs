@@ -5,7 +5,7 @@ use crate::vec3::{Point3, Vec3};
 
 use std::ops::Add;
 
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Copy)]
 pub struct Aabb {
     pub min: Point3,
     pub max: Point3,
