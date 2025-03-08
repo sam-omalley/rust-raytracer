@@ -7,8 +7,8 @@ use std::ops::Add;
 
 #[derive(Default, Clone)]
 pub struct Aabb {
-    min: Point3,
-    max: Point3,
+    pub min: Point3,
+    pub max: Point3,
 }
 
 impl Aabb {
@@ -59,19 +59,19 @@ impl Aabb {
     }
 
     pub fn combine(a: &Aabb, b: &Aabb) -> Aabb {
-        let small = Point3::new(
-            a.min().x().min(b.min().x()),
-            a.min().y().min(b.min().y()),
-            a.min().z().min(b.min().z()),
+        let min = Point3::new(
+            f64::min(a.min().x(), b.min().x()),
+            f64::min(a.min().y(), b.min().y()),
+            f64::min(a.min().z(), b.min().z()),
         );
 
-        let big = Point3::new(
-            a.max().x().max(b.max().x()),
-            a.max().y().max(b.max().y()),
-            a.max().z().max(b.max().z()),
+        let max = Point3::new(
+            f64::max(a.max().x(), b.max().x()),
+            f64::max(a.max().y(), b.max().y()),
+            f64::max(a.max().z(), b.max().z()),
         );
 
-        Aabb::new(small, big)
+        Aabb::new(min, max)
     }
 
     pub fn min(&self) -> Point3 {
@@ -99,15 +99,13 @@ impl Aabb {
         for a in 0..=2 {
             let inv_d = 1.0 / r.direction()[a];
 
-            let mut t0 = (self.min()[a] - r.origin()[a]) * inv_d;
-            let mut t1 = (self.max()[a] - r.origin()[a]) * inv_d;
+            let t0 = (self.min[a] - r.origin()[a]) * inv_d;
+            let t1 = (self.max[a] - r.origin()[a]) * inv_d;
 
-            if inv_d < 0.0 {
-                (t1, t0) = (t0, t1); // Swap t0 and t1
-            }
+            let (t0, t1) = if inv_d < 0.0 { (t1, t0) } else { (t0, t1) };
 
-            let t_min_temp = if t0 > ray_t.min() { t0 } else { ray_t.min() };
-            let t_max_temp = if t1 < ray_t.max() { t1 } else { ray_t.max() };
+            let t_min_temp = ray_t.min().max(t0);
+            let t_max_temp = ray_t.max().min(t1);
 
             if t_max_temp <= t_min_temp {
                 return false;
