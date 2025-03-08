@@ -10,15 +10,15 @@ use crate::vec3::{Point3, Vec3};
 pub struct RotateY<H: Hittable> {
     object: H,
     bbox: Aabb,
-    sin_theta: f64,
-    cos_theta: f64,
+    sin_theta: f32,
+    cos_theta: f32,
 }
 
 impl<H: Hittable> RotateY<H> {
-    pub fn new(object: H, angle: f64) -> Self {
+    pub fn new(object: H, angle: f32) -> Self {
         let radians = common::degrees_to_radians(angle);
-        let sin_theta = f64::sin(radians);
-        let cos_theta = f64::cos(radians);
+        let sin_theta = f32::sin(radians);
+        let cos_theta = f32::cos(radians);
         let bbox = object.bounding_box();
 
         let mut min = Point3::fill(common::INFINITY);
@@ -27,9 +27,9 @@ impl<H: Hittable> RotateY<H> {
         for i in 0..2 {
             for j in 0..2 {
                 for k in 0..2 {
-                    let x = i as f64 * bbox.max().x() + (1 - i) as f64 * bbox.min().x();
-                    let y = j as f64 * bbox.max().y() + (1 - j) as f64 * bbox.min().y();
-                    let z = k as f64 * bbox.max().z() + (1 - k) as f64 * bbox.min().z();
+                    let x = i as f32 * bbox.max().x() + (1 - i) as f32 * bbox.min().x();
+                    let y = j as f32 * bbox.max().y() + (1 - j) as f32 * bbox.min().y();
+                    let z = k as f32 * bbox.max().z() + (1 - k) as f32 * bbox.min().z();
 
                     let x = cos_theta * x + sin_theta * z;
                     let z = -sin_theta * x + cos_theta * z;
@@ -37,8 +37,8 @@ impl<H: Hittable> RotateY<H> {
                     let tester = Vec3::new(x, y, z);
 
                     for c in 0..3 {
-                        min[c] = f64::min(min[c], tester[c]);
-                        max[c] = f64::max(min[c], tester[c]);
+                        min[c] = f32::min(min[c], tester[c]);
+                        max[c] = f32::max(min[c], tester[c]);
                     }
                 }
             }

@@ -1,6 +1,6 @@
 use crate::aabb::Aabb;
+use crate::bvh_node::Bvh;
 use crate::hittable::{HitRecord, Hittable};
-use crate::hittable_list::HittableList;
 use crate::interval::Interval;
 use crate::material::Material;
 use crate::ray::Ray;
@@ -15,7 +15,7 @@ pub struct Quad {
     material: Material,
     bbox: Aabb,
     normal: Vec3,
-    d: f64,
+    d: f32,
 }
 
 impl Quad {
@@ -43,7 +43,7 @@ impl Quad {
         Aabb::combine(&bbox_diagonal1, &bbox_diagonal2)
     }
 
-    fn is_interior(a: f64, b: f64) -> Option<(f64, f64)> {
+    fn is_interior(a: f32, b: f32) -> Option<(f32, f32)> {
         let unit_interval = Interval::new(0.0, 1.0);
 
         // Given the hit point in plane coordinates, return None if it is
@@ -60,7 +60,7 @@ impl Hittable for Quad {
     fn hit<'a>(&'a self, r: &Ray, ray_t: Interval) -> Option<HitRecord<'a>> {
         let denom = dot(self.normal, r.direction());
 
-        if f64::abs(denom) < 1e-8 {
+        if f32::abs(denom) < 1e-8 {
             return None;
         }
 
@@ -76,17 +76,14 @@ impl Hittable for Quad {
         let beta = dot(self.w, cross(self.u, planar_hitpt_vector));
 
         if let Some((u, v)) = Self::is_interior(alpha, beta) {
-            return Some(
-                HitRecord{
-                    t,
-                    p: intersection,
-                    u,
-                    v,
-                    normal: self.normal,
-                    material: &self.material,
-                }
-
-            )
+            return Some(HitRecord {
+                t,
+                p: intersection,
+                u,
+                v,
+                normal: self.normal,
+                material: &self.material,
+            });
         }
         None
     }
@@ -96,20 +93,20 @@ impl Hittable for Quad {
     }
 }
 
-pub fn quad_box(a: Point3, b: Point3, material: Material) -> HittableList {
+pub fn quad_box(a: Point3, b: Point3, material: Material) -> Bvh {
     // Returns the 3D box (six sides) that contains the two opposite vertices a & b.
-    let mut sides = HittableList::new();
+    let mut sides: Vec<Box<dyn Hittable>> = Vec::new();
 
     // Construct the two opposite vertices with the minimum and maximum coordinates.
     let min = Point3::new(
-        f64::min(a.x(), b.x()),
-        f64::min(a.y(), b.y()),
-        f64::min(a.z(), b.z()),
+        f32::min(a.x(), b.x()),
+        f32::min(a.y(), b.y()),
+        f32::min(a.z(), b.z()),
     );
     let max = Point3::new(
-        f64::max(a.x(), b.x()),
-        f64::max(a.y(), b.y()),
-        f64::max(a.z(), b.z()),
+        f32::max(a.x(), b.x()),
+        f32::max(a.y(), b.y()),
+        f32::max(a.z(), b.z()),
     );
 
     let dx = Vec3::new(max.x() - min.x(), 0.0, 0.0);
@@ -117,47 +114,47 @@ pub fn quad_box(a: Point3, b: Point3, material: Material) -> HittableList {
     let dz = Vec3::new(0.0, 0.0, max.z() - min.z());
 
     // Front
-    sides.push(Quad::new(
+    sides.push(Box::new(Quad::new(
         Point3::new(min.x(), min.y(), max.z()),
         dx,
         dy,
         material.clone(),
-    ));
+    )));
     // Right
-    sides.push(Quad::new(
+    sides.push(Box::new(Quad::new(
         Point3::new(max.x(), min.y(), max.z()),
         -dz,
         dy,
         material.clone(),
-    ));
+    )));
     // Back
-    sides.push(Quad::new(
+    sides.push(Box::new(Quad::new(
         Point3::new(max.x(), min.y(), min.z()),
         -dx,
         dy,
         material.clone(),
-    ));
+    )));
     // Left
-    sides.push(Quad::new(
+    sides.push(Box::new(Quad::new(
         Point3::new(min.x(), min.y(), min.z()),
         dz,
         dy,
         material.clone(),
-    ));
+    )));
     // Top
-    sides.push(Quad::new(
+    sides.push(Box::new(Quad::new(
         Point3::new(min.x(), max.y(), max.z()),
         dx,
         -dz,
         material.clone(),
-    ));
+    )));
     // Bottom
-    sides.push(Quad::new(
+    sides.push(Box::new(Quad::new(
         Point3::new(min.x(), min.y(), min.z()),
         dx,
         dz,
         material.clone(),
-    ));
+    )));
 
-    sides
+    Bvh::new(sides)
 }

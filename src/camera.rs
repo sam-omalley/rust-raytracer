@@ -19,10 +19,10 @@ pub struct Camera {
     lower_left_corner: Point3,
     horizontal: Vec3,
     vertical: Vec3,
-    aspect_ratio: f64,
+    aspect_ratio: f32,
     u: Vec3,
     v: Vec3,
-    lens_radius: f64,
+    lens_radius: f32,
     background: Colour,
 }
 
@@ -32,14 +32,14 @@ impl Camera {
         lookfrom: Point3,
         lookat: Point3,
         vup: Vec3,
-        vfov: f64, // Vertical field-of-view in degrees
-        aspect_ratio: f64,
-        aperture: f64,
-        focus_distance: f64,
+        vfov: f32, // Vertical field-of-view in degrees
+        aspect_ratio: f32,
+        aperture: f32,
+        focus_distance: f32,
         background: Colour,
     ) -> Camera {
         let theta = common::degrees_to_radians(vfov);
-        let h = f64::tan(theta / 2.0);
+        let h = f32::tan(theta / 2.0);
         let viewport_height = 2.0 * h;
         let viewport_width = aspect_ratio * viewport_height;
 
@@ -70,7 +70,7 @@ impl Camera {
     pub fn render(&self, world: &dyn Hittable, render: &Render) {
         let progress = Mutex::new(0);
 
-        let height = (render.width as f64 / self.aspect_ratio) as i32;
+        let height = (render.width as f32 / self.aspect_ratio) as i32;
         let num_pixels = render.width * height;
 
         let pixels: Vec<(u8, u8, u8)> = (0..num_pixels)
@@ -89,8 +89,8 @@ impl Camera {
 
                 let mut pixel_colour = Colour::new(0.0, 0.0, 0.0);
                 for _ in 0..render.samples_per_pixel {
-                    let u = (i as f64 + common::random_double()) / (render.width - 1) as f64;
-                    let v = (j as f64 + common::random_double()) / (height - 1) as f64;
+                    let u = (i as f32 + common::random_double()) / (render.width - 1) as f32;
+                    let v = (j as f32 + common::random_double()) / (height - 1) as f32;
                     let r = self.get_ray(u, v);
                     pixel_colour += self.ray_colour(&r, world, render.max_depth);
                 }
@@ -107,7 +107,7 @@ impl Camera {
         }
     }
 
-    fn get_ray(&self, s: f64, t: f64) -> Ray {
+    fn get_ray(&self, s: f32, t: f32) -> Ray {
         // Construct a camera ray originating from the defocus disk and
         // directed at a randomly sampled point around the pixel location.
         let rd = self.lens_radius * vec3::random_in_unit_disk();

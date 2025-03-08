@@ -28,7 +28,7 @@ pub enum Texture {
     },
     Noise {
         noise: Box<Perlin>,
-        scale: f64,
+        scale: f32,
     },
 }
 
@@ -39,14 +39,14 @@ impl From<Colour> for Texture {
 }
 
 impl Texture {
-    pub fn colour(&self, u: f64, v: f64, p: Point3) -> Colour {
+    pub fn colour(&self, u: f32, v: f32, p: Point3) -> Colour {
         match self {
             Texture::SolidColour { albedo } => *albedo,
             Texture::Checker { scale, even, odd } => {
                 let inv_scale = 1.0 / *scale;
-                let x = f64::floor(inv_scale.x() * p.x()) as i32;
-                let y = f64::floor(inv_scale.y() * p.y()) as i32;
-                let z = f64::floor(inv_scale.z() * p.z()) as i32;
+                let x = f32::floor(inv_scale.x() * p.x()) as i32;
+                let y = f32::floor(inv_scale.y() * p.y()) as i32;
+                let z = f32::floor(inv_scale.z() * p.z()) as i32;
 
                 let is_even = (x + y + z) % 2 == 0;
 
@@ -65,10 +65,10 @@ impl Texture {
                 let u = u.clamp(0.0, 1.0);
                 let v = v.clamp(0.0, 1.0);
 
-                let mut i = f64::floor(u * image.width() as f64) as u32;
+                let mut i = f32::floor(u * image.width() as f32) as u32;
                 i %= image.width();
 
-                let mut j = f64::floor(v * image.height() as f64) as u32;
+                let mut j = f32::floor(v * image.height() as f32) as u32;
                 j %= image.height();
                 // Invert j
                 j = image.height() - j - 1;
@@ -77,13 +77,13 @@ impl Texture {
                 let colour_scale = 1.0 / 255.0;
 
                 Colour::new(
-                    colour_scale * pixel.0[0] as f64,
-                    colour_scale * pixel.0[1] as f64,
-                    colour_scale * pixel.0[2] as f64,
+                    colour_scale * pixel.0[0] as f32,
+                    colour_scale * pixel.0[1] as f32,
+                    colour_scale * pixel.0[2] as f32,
                 )
             }
             Texture::Noise { noise, scale } => {
-                Colour::fill(0.5) * (1.0 + f64::sin(scale * p.z() + 10.0 * noise.turb(p, 7)))
+                Colour::fill(0.5) * (1.0 + f32::sin(scale * p.z() + 10.0 * noise.turb(p, 7)))
             }
         }
     }

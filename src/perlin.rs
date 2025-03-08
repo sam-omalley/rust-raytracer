@@ -31,14 +31,14 @@ impl Perlin {
         p
     }
 
-    pub fn noise(&self, p: Point3) -> f64 {
-        let u = p.x() - f64::floor(p.x());
-        let v = p.y() - f64::floor(p.y());
-        let w = p.z() - f64::floor(p.z());
+    pub fn noise(&self, p: Point3) -> f32 {
+        let u = p.x() - f32::floor(p.x());
+        let v = p.y() - f32::floor(p.y());
+        let w = p.z() - f32::floor(p.z());
 
-        let i = f64::floor(p.x()) as i32;
-        let j = f64::floor(p.y()) as i32;
-        let k = f64::floor(p.z()) as i32;
+        let i = f32::floor(p.x()) as i32;
+        let j = f32::floor(p.y()) as i32;
+        let k = f32::floor(p.z()) as i32;
 
         let mut c: [[[Vec3; 2]; 2]; 2] = [[[Vec3::zero(); 2]; 2]; 2];
 
@@ -56,7 +56,7 @@ impl Perlin {
         Self::perlin_interp(&c, u, v, w)
     }
 
-    pub fn turb(&self, p: Point3, depth: i32) -> f64 {
+    pub fn turb(&self, p: Point3, depth: i32) -> f32 {
         let mut accum = 0.0;
         let mut temp_p = p;
         let mut weight = 1.0;
@@ -67,7 +67,7 @@ impl Perlin {
             temp_p *= 2.0;
         }
 
-        f64::abs(accum)
+        f32::abs(accum)
     }
 
     fn perlin_generate_perm(p: &mut [i32; POINT_COUNT]) {
@@ -89,7 +89,7 @@ impl Perlin {
     }
 
     #[allow(clippy::needless_range_loop)]
-    fn perlin_interp(c: &[[[Vec3; 2]; 2]; 2], u: f64, v: f64, w: f64) -> f64 {
+    fn perlin_interp(c: &[[[Vec3; 2]; 2]; 2], u: f32, v: f32, w: f32) -> f32 {
         let uu = u * u * (3.0 - 2.0 * u);
         let vv = v * v * (3.0 - 2.0 * v);
         let ww = w * w * (3.0 - 2.0 * w);
@@ -99,9 +99,9 @@ impl Perlin {
         for i in 0..2 {
             for j in 0..2 {
                 for k in 0..2 {
-                    let i_f = i as f64;
-                    let j_f = j as f64;
-                    let k_f = k as f64;
+                    let i_f = i as f32;
+                    let j_f = j as f32;
+                    let k_f = k as f32;
 
                     let weight_v = Vec3::new(u - i_f, v - j_f, w - k_f);
                     accum += (i_f * uu + (1.0 - i_f) * (1.0 - u))

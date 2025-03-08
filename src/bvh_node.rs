@@ -21,8 +21,8 @@ impl Bvh {
         // Note: though this BVH implementation is largely derived from Peter
         // Shirley's, it does *not* use the random axis selection and sort
         // routine, because it tends to fall into pathological cases.
-        fn axis_range(objs: &[Box<dyn Hittable>], axis: usize) -> f64 {
-            let range = objs.iter().fold(f64::MAX..f64::MIN, |range, o| {
+        fn axis_range(objs: &[Box<dyn Hittable>], axis: usize) -> f32 {
+            let range = objs.iter().fold(f32::MAX..f32::MIN, |range, o| {
                 let bb = o.bounding_box();
                 let min = bb.min[axis].min(bb.max[axis]);
                 let max = bb.min[axis].max(bb.max[axis]);

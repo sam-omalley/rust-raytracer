@@ -2,12 +2,12 @@ use crate::common::INFINITY;
 
 #[derive(PartialEq, Copy, Clone)]
 pub struct Interval {
-    pub min: f64,
-    pub max: f64,
+    pub min: f32,
+    pub max: f32,
 }
 
 impl Interval {
-    pub fn new(min: f64, max: f64) -> Self {
+    pub fn new(min: f32, max: f32) -> Self {
         Interval { min, max }
     }
 
@@ -18,7 +18,7 @@ impl Interval {
         }
     }
 
-    pub fn ordered(v1: f64, v2: f64) -> Self {
+    pub fn ordered(v1: f32, v2: f32) -> Self {
         if v1 <= v2 {
             Interval { min: v1, max: v2 }
         } else {
@@ -40,27 +40,27 @@ impl Interval {
         }
     }
 
-    pub fn max(&self) -> f64 {
+    pub fn max(&self) -> f32 {
         self.max
     }
 
-    pub fn min(&self) -> f64 {
+    pub fn min(&self) -> f32 {
         self.min
     }
 
-    pub fn size(&self) -> f64 {
+    pub fn size(&self) -> f32 {
         self.max - self.min
     }
 
-    pub fn contains(&self, x: f64) -> bool {
+    pub fn contains(&self, x: f32) -> bool {
         self.min <= x && x <= self.max
     }
 
-    pub fn surrounds(&self, x: f64) -> bool {
+    pub fn surrounds(&self, x: f32) -> bool {
         self.min < x && x < self.max
     }
 
-    pub fn expand(&self, delta: f64) -> Interval {
+    pub fn expand(&self, delta: f32) -> Interval {
         let padding = delta / 2.0;
         Interval {
             min: self.min - padding,
@@ -68,7 +68,7 @@ impl Interval {
         }
     }
 
-    pub fn clamp(&self, v: f64) -> f64 {
+    pub fn clamp(&self, v: f32) -> f32 {
         if v < self.min() {
             self.min()
         } else if v > self.max() {

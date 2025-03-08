@@ -4,8 +4,8 @@ use std::cell::RefCell;
 
 // Constants
 
-pub const INFINITY: f64 = f64::INFINITY;
-pub const PI: f64 = std::f64::consts::PI;
+pub const INFINITY: f32 = f32::INFINITY;
+pub const PI: f32 = std::f32::consts::PI;
 
 // Utility functions
 
@@ -14,12 +14,12 @@ thread_local! {
 }
 
 #[inline]
-pub fn degrees_to_radians(degrees: f64) -> f64 {
+pub fn degrees_to_radians(degrees: f32) -> f32 {
     degrees * PI / 180.0
 }
 
 #[inline]
-pub fn random_double() -> f64 {
+pub fn random_double() -> f32 {
     RNG.with(|rng| rng.borrow_mut().random())
 }
 
@@ -29,13 +29,13 @@ pub fn random_int(min: i32, max: i32) -> i32 {
 }
 
 #[inline]
-pub fn random_double_range(min: f64, max: f64) -> f64 {
+pub fn random_double_range(min: f32, max: f32) -> f32 {
     // Return a random real in [min, max)
     min + (max - min) * random_double()
 }
 
 #[inline]
-pub fn clamp(x: f64, min: f64, max: f64) -> f64 {
+pub fn clamp(x: f32, min: f32, max: f32) -> f32 {
     if x < min {
         return min;
     }

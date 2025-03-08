@@ -7,7 +7,6 @@ mod colour;
 mod common;
 mod constant_medium;
 mod hittable;
-mod hittable_list;
 mod interval;
 mod material;
 mod perlin;
@@ -24,7 +23,6 @@ use camera::{Camera, Render};
 use colour::Colour;
 use constant_medium::ConstantMedium;
 use hittable::Hittable;
-use hittable_list::HittableList;
 use material::Material;
 use perlin::Perlin;
 use quad::{Quad, quad_box};
@@ -35,8 +33,8 @@ use translate::Translate;
 use vec3::{Point3, Vec3};
 
 // Image
-const ASPECT_RATIO: f64 = 16.0 / 9.0;
-const SQUARE_ASPECT_RATIO: f64 = 1.0;
+const ASPECT_RATIO: f32 = 16.0 / 9.0;
+const SQUARE_ASPECT_RATIO: f32 = 1.0;
 
 pub const LOWLOW_RENDER: Render = Render {
     width: 400,
@@ -90,9 +88,9 @@ pub fn bouncing_spheres(render: &Render) {
         for b in -11..11 {
             let choose_mat = common::random_double();
             let center = Point3::new(
-                a as f64 + 0.9 * common::random_double(),
+                a as f32 + 0.9 * common::random_double(),
                 0.2,
-                b as f64 + 0.9 * common::random_double(),
+                b as f32 + 0.9 * common::random_double(),
             );
 
             if (center - Point3::new(4.0, 0.2, 0.0)).length() > 0.9 {
@@ -599,28 +597,28 @@ pub fn final_scene(render: &Render) {
         texture: Colour::new(0.48, 0.83, 0.53).into(),
     };
 
-    let mut boxes1 = HittableList::new();
+    let mut boxes1: Vec<Box<dyn Hittable>> = Vec::new();
     let boxes_per_side = 20;
     for i in 0..boxes_per_side {
         for j in 0..boxes_per_side {
             let w = 100.0;
-            let x0 = -1000.0 + i as f64 * w;
-            let z0 = -1000.0 + j as f64 * w;
+            let x0 = -1000.0 + i as f32 * w;
+            let z0 = -1000.0 + j as f32 * w;
             let y0 = 0.0;
             let x1 = x0 + w;
             let y1 = common::random_double_range(1.0, 101.0);
             let z1 = z0 + w;
 
-            boxes1.push(quad_box(
+            boxes1.push(Box::new(quad_box(
                 Point3::new(x0, y0, z0),
                 Point3::new(x1, y1, z1),
                 ground.clone(),
-            ));
+            )));
         }
     }
 
     let mut world: Vec<Box<dyn Hittable>> = Vec::new();
-    world.push(Box::new(boxes1));
+    world.push(Box::new(Bvh::new(boxes1)));
 
     let light = Material::DiffuseLight {
         texture: Colour::fill(7.0).into(),
@@ -704,20 +702,20 @@ pub fn final_scene(render: &Render) {
         },
     )));
 
-    let mut boxes2 = HittableList::new();
+    let mut boxes2: Vec<Box<dyn Hittable>> = Vec::new();
     let white = Material::Lambertian {
         texture: Colour::new(0.73, 0.73, 0.73).into(),
     };
     let ns = 1000;
     for _ in 0..ns {
-        boxes2.push(Sphere::stationary(
+        boxes2.push(Box::new(Sphere::stationary(
             Point3::random_range(0.0, 165.0),
             10.0,
             white.clone(),
-        ));
+        )));
     }
 
-    let boxes2 = RotateY::new(boxes2, 15.0);
+    let boxes2 = RotateY::new(Bvh::new(boxes2), 15.0);
     let boxes2 = Translate::new(boxes2, Vec3::newi(-100, 270, 395));
     world.push(Box::new(boxes2));
 
