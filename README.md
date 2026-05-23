@@ -4,6 +4,14 @@ A Rust implementation of [_Ray Tracing in One Weekend_](https://raytracing.githu
 
 Parallelised with [Rayon](https://github.com/rayon-rs/rayon) for multi-core rendering.
 
+## Screenshots
+
+| | |
+|---|---|
+| ![Final Scene](screenshots/final-scene.png) | ![Cornell Smoke](screenshots/cornell_smoke.png) |
+| ![Cornell Box](screenshots/cornell_box.png) | ![Simple Light](screenshots/simple_light.png) |
+| ![Perlin](screenshots/perlin.png) | ![Checkered Spheres](screenshots/checkered_spheres.png) |
+
 ## Scenes
 
 | # | Scene |
