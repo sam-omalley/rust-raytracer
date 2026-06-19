@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 mod aabb;
 mod bvh_node;
 mod camera;
