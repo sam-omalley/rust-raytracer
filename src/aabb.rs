@@ -132,3 +132,55 @@ impl Add<Aabb> for Vec3 {
         bbox + self
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::ray::Ray;
+
+    fn unit_box() -> Aabb {
+        Aabb::new(Point3::new(-1.0, -1.0, -1.0), Point3::new(1.0, 1.0, 1.0))
+    }
+
+    fn full() -> Interval {
+        Interval::new(0.001, common::INFINITY)
+    }
+
+    #[test]
+    fn ray_pointing_at_box_hits() {
+        let r = Ray::new(Point3::new(0.0, 0.0, -5.0), Vec3::new(0.0, 0.0, 1.0));
+        assert!(unit_box().hit(&r, full()));
+    }
+
+    #[test]
+    fn ray_pointing_away_misses() {
+        let r = Ray::new(Point3::new(0.0, 0.0, -5.0), Vec3::new(0.0, 0.0, -1.0));
+        assert!(!unit_box().hit(&r, full()));
+    }
+
+    #[test]
+    fn ray_parallel_and_offset_misses() {
+        // Travels along +z but is offset in x so it never enters the slab.
+        let r = Ray::new(Point3::new(5.0, 0.0, -5.0), Vec3::new(0.0, 0.0, 1.0));
+        assert!(!unit_box().hit(&r, full()));
+    }
+
+    #[test]
+    fn ray_from_inside_hits() {
+        let r = Ray::new(Point3::new(0.0, 0.0, 0.0), Vec3::new(0.0, 0.0, 1.0));
+        assert!(unit_box().hit(&r, full()));
+    }
+
+    #[test]
+    fn diagonal_ray_through_corner_hits() {
+        let r = Ray::new(Point3::new(-5.0, -5.0, -5.0), Vec3::new(1.0, 1.0, 1.0));
+        assert!(unit_box().hit(&r, full()));
+    }
+
+    #[test]
+    fn hit_respects_ray_interval() {
+        // Box is in front, but the interval ends before the ray reaches it.
+        let r = Ray::new(Point3::new(0.0, 0.0, -5.0), Vec3::new(0.0, 0.0, 1.0));
+        assert!(!unit_box().hit(&r, Interval::new(0.001, 1.0)));
+    }
+}

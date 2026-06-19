@@ -249,3 +249,63 @@ pub fn refract(uv: Vec3, n: Vec3, etai_over_etat: f64) -> Vec3 {
     let r_out_parallel = -f64::sqrt(f64::abs(1.0 - r_out_perp.length_squared())) * n;
     r_out_perp + r_out_parallel
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const EPS: f64 = 1e-9;
+
+    fn vec_approx_eq(a: Vec3, b: Vec3) {
+        assert!(
+            (a.x() - b.x()).abs() < EPS
+                && (a.y() - b.y()).abs() < EPS
+                && (a.z() - b.z()).abs() < EPS,
+            "expected {} ~= {}",
+            a,
+            b
+        );
+    }
+
+    #[test]
+    fn reflect_off_flat_ground() {
+        // A ray heading down-and-right bounces up-and-right off the y-up plane.
+        let reflected = reflect(Vec3::new(1.0, -1.0, 0.0), Vec3::new(0.0, 1.0, 0.0));
+        vec_approx_eq(reflected, Vec3::new(1.0, 1.0, 0.0));
+    }
+
+    #[test]
+    fn reflect_preserves_length() {
+        let v = Vec3::new(0.3, -0.7, 0.5);
+        let n = random_unit_vector();
+        let r = reflect(v, n);
+        assert!((r.length() - v.length()).abs() < EPS);
+    }
+
+    #[test]
+    fn reflect_is_pure_along_normal() {
+        // A ray along the normal reflects straight back.
+        let reflected = reflect(Vec3::new(0.0, -1.0, 0.0), Vec3::new(0.0, 1.0, 0.0));
+        vec_approx_eq(reflected, Vec3::new(0.0, 1.0, 0.0));
+    }
+
+    #[test]
+    fn refract_with_equal_indices_is_unchanged() {
+        // etai_over_etat == 1.0 means no bending: the direction passes through.
+        let uv = unit_vector(Vec3::new(1.0, -1.0, 0.0));
+        let n = Vec3::new(0.0, 1.0, 0.0);
+        let refracted = refract(uv, n, 1.0);
+        vec_approx_eq(refracted, uv);
+    }
+
+    #[test]
+    fn refract_bends_toward_normal_when_entering_denser_medium() {
+        // Going from less dense to more dense (ratio < 1) reduces the angle to -n.
+        let uv = unit_vector(Vec3::new(1.0, -1.0, 0.0));
+        let n = Vec3::new(0.0, 1.0, 0.0);
+        let refracted = refract(uv, n, 0.5);
+        assert!((refracted.length() - 1.0).abs() < 1e-9);
+        // Angle from the downward normal should shrink: x-component magnitude drops.
+        assert!(refracted.x().abs() < uv.x().abs());
+    }
+}
