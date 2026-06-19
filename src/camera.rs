@@ -6,7 +6,7 @@ use crate::ray::Ray;
 use crate::vec3::{self, Point3, Vec3};
 
 use rayon::prelude::*;
-use std::sync::Mutex;
+use std::sync::atomic::{AtomicI32, Ordering};
 
 pub struct Render {
     pub width: i32,
@@ -68,7 +68,7 @@ impl Camera {
     }
 
     pub fn render(&self, world: &dyn Hittable, render: &Render) {
-        let progress = Mutex::new(0);
+        let progress = AtomicI32::new(0);
 
         let height = (render.width as f64 / self.aspect_ratio) as i32;
         let num_pixels = render.width * height;
@@ -77,10 +77,9 @@ impl Camera {
             .into_par_iter()
             .map(|index| {
                 {
-                    let mut count = progress.lock().unwrap();
-                    *count += 1;
-                    if (num_pixels - *count) % 1000 == 0 {
-                        eprint!("\rScanlines remaining: {}", (num_pixels - *count));
+                    let count = progress.fetch_add(1, Ordering::Relaxed) + 1;
+                    if (num_pixels - count) % 1000 == 0 {
+                        eprint!("\rScanlines remaining: {}", (num_pixels - count));
                     }
                 }
 
