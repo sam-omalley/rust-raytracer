@@ -126,7 +126,8 @@ impl Camera {
         }
 
         match world.hit(r, Interval::new(0.001, common::INFINITY)) {
-            Some((hit_record, material)) => {
+            Some(hit_record) => {
+                let material = hit_record.material;
                 let emission_colour = material.emitted(hit_record.u, hit_record.v, hit_record.p);
                 match material.scatter(r, &hit_record) {
                     Some((attenuation, scattered)) => {

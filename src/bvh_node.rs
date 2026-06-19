@@ -1,7 +1,6 @@
 use crate::aabb::Aabb;
 use crate::hittable::{HitRecord, Hittable};
 use crate::interval::Interval;
-use crate::material::Material;
 use crate::ray::Ray;
 
 use std::cmp::Ordering;
@@ -22,8 +21,8 @@ impl Bvh {
             axis: usize,
         ) -> impl FnMut(&Box<dyn Hittable>, &Box<dyn Hittable>) -> Ordering {
             move |a, b| {
-                let a_bbox = a.bounding_box();
-                let b_bbox = b.bounding_box();
+                let a_bbox = a.bounding_box().unwrap_or_else(Aabb::empty);
+                let b_bbox = b.bounding_box().unwrap_or_else(Aabb::empty);
                 let ac = a_bbox.min()[axis] + a_bbox.max()[axis];
                 let bc = b_bbox.min()[axis] + b_bbox.max()[axis];
                 ac.partial_cmp(&bc).unwrap()
@@ -34,7 +33,7 @@ impl Bvh {
             let (min, max) = hittable
                 .iter()
                 .fold((f64::MAX, f64::MIN), |(bmin, bmax), hit| {
-                    let bbox = hit.bounding_box();
+                    let bbox = hit.bounding_box().unwrap_or_else(Aabb::empty);
                     (bmin.min(bbox.min()[axis]), bmax.max(bbox.max()[axis]))
                 });
             max - min
@@ -52,7 +51,7 @@ impl Bvh {
             0 => panic!("No elements in scene"),
             1 => {
                 let leaf = hittable.pop().unwrap();
-                let bbox = leaf.bounding_box();
+                let bbox = leaf.bounding_box().unwrap_or_else(Aabb::empty);
                 Bvh {
                     tree: BvhNode::Leaf(leaf),
                     bbox,
@@ -75,13 +74,13 @@ impl Bvh {
 }
 
 impl Hittable for Bvh {
-    fn hit(&self, r: &Ray, mut ray_t: Interval) -> Option<(HitRecord, &Material)> {
+    fn hit(&self, r: &Ray, mut ray_t: Interval) -> Option<HitRecord<'_>> {
         if self.bbox.hit(r, ray_t) {
             match &self.tree {
                 BvhNode::Leaf(leaf) => leaf.hit(r, ray_t),
                 BvhNode::Branch { left, right } => {
                     let left = left.hit(r, ray_t);
-                    if let Some((l_rec, _)) = &left {
+                    if let Some(l_rec) = &left {
                         ray_t.max = l_rec.t
                     };
                     let right = right.hit(r, ray_t);
@@ -93,7 +92,7 @@ impl Hittable for Bvh {
         }
     }
 
-    fn bounding_box(&self) -> Aabb {
-        self.bbox
+    fn bounding_box(&self) -> Option<Aabb> {
+        Some(self.bbox)
     }
 }

@@ -24,9 +24,9 @@ impl<H: Hittable> ConstantMedium<H> {
 }
 
 impl<H: Hittable> Hittable for ConstantMedium<H> {
-    fn hit(&self, r: &Ray, ray_t: Interval) -> Option<(HitRecord, &Material)> {
-        let (mut rec1, _) = self.boundary.hit(r, Interval::universe())?;
-        let (mut rec2, _) = self
+    fn hit(&self, r: &Ray, ray_t: Interval) -> Option<HitRecord<'_>> {
+        let mut rec1 = self.boundary.hit(r, Interval::universe())?;
+        let mut rec2 = self
             .boundary
             .hit(r, Interval::new(rec1.t + 0.0001, common::INFINITY))?;
 
@@ -52,15 +52,15 @@ impl<H: Hittable> Hittable for ConstantMedium<H> {
             return None;
         }
 
-        let mut rec = HitRecord::new();
+        let mut rec = HitRecord::new(&self.phase_function);
         rec.t = rec1.t + hit_distance / ray_length;
         rec.p = r.at(rec.t);
         rec.set_face_normal(r, Vec3::newi(1, 0, 0));
 
-        Some((rec, &self.phase_function))
+        Some(rec)
     }
 
-    fn bounding_box(&self) -> Aabb {
+    fn bounding_box(&self) -> Option<Aabb> {
         self.boundary.bounding_box()
     }
 }

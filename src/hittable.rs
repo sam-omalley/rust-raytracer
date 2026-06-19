@@ -4,20 +4,28 @@ use crate::material::Material;
 use crate::ray::Ray;
 use crate::vec3::{self, Point3, Vec3};
 
-// TODO: Move Material into HitRecord
-#[derive(Clone, Default)]
-pub struct HitRecord {
+#[derive(Clone)]
+pub struct HitRecord<'a> {
     pub p: Point3,
     pub normal: Vec3,
+    pub material: &'a Material,
     pub t: f64,
     pub u: f64,
     pub v: f64,
     pub front_face: bool,
 }
 
-impl HitRecord {
-    pub fn new() -> HitRecord {
-        Default::default()
+impl<'a> HitRecord<'a> {
+    pub fn new(material: &'a Material) -> HitRecord<'a> {
+        HitRecord {
+            p: Point3::zero(),
+            normal: Vec3::zero(),
+            material,
+            t: 0.0,
+            u: 0.0,
+            v: 0.0,
+            front_face: false,
+        }
     }
 
     pub fn set_face_normal(&mut self, r: &Ray, outward_normal: Vec3) {
@@ -31,6 +39,6 @@ impl HitRecord {
 }
 
 pub trait Hittable: Send + Sync {
-    fn hit(&self, r: &Ray, ray_t: Interval) -> Option<(HitRecord, &Material)>;
-    fn bounding_box(&self) -> Aabb;
+    fn hit(&self, r: &Ray, ray_t: Interval) -> Option<HitRecord<'_>>;
+    fn bounding_box(&self) -> Option<Aabb>;
 }

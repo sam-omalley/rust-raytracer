@@ -1,7 +1,6 @@
 use crate::aabb::Aabb;
 use crate::hittable::{HitRecord, Hittable};
 use crate::interval::Interval;
-use crate::material::Material;
 use crate::ray::Ray;
 
 #[derive(Default)]
@@ -20,32 +19,26 @@ impl HittableList {
 }
 
 impl Hittable for HittableList {
-    fn hit(&self, r: &Ray, ray_t: Interval) -> Option<(HitRecord, &Material)> {
+    fn hit(&self, r: &Ray, ray_t: Interval) -> Option<HitRecord<'_>> {
         let mut closest_so_far = ray_t.max();
         let mut res = None;
 
         for h in self.objects.iter() {
-            if let Some((hit_record, material)) =
-                h.hit(r, Interval::new(ray_t.min(), closest_so_far))
-            {
+            if let Some(hit_record) = h.hit(r, Interval::new(ray_t.min(), closest_so_far)) {
                 closest_so_far = hit_record.t;
-                res = Some((hit_record, material));
+                res = Some(hit_record);
             }
         }
         res
     }
 
-    // TODO: Update bounding_box() to return Option<Aabb>
-    fn bounding_box(&self) -> Aabb {
-        match self.objects.first() {
-            Some(first) => {
-                let bbox = first.bounding_box();
-                self.objects.iter().skip(1).fold(bbox, |acc, hittable| {
-                    let bbox = hittable.bounding_box();
-                    Aabb::combine(&acc, &bbox)
-                })
-            }
-            _ => Aabb::empty(),
-        }
+    fn bounding_box(&self) -> Option<Aabb> {
+        self.objects
+            .iter()
+            .fold(None, |acc, hittable| match (acc, hittable.bounding_box()) {
+                (None, b) => b,
+                (Some(a), None) => Some(a),
+                (Some(a), Some(b)) => Some(Aabb::combine(&a, &b)),
+            })
     }
 }

@@ -26,7 +26,7 @@ use hittable_list::HittableList;
 use material::Material;
 use perlin::Perlin;
 use quad::{Quad, quad_box};
-use rotate_y::RotateY;
+use rotate_y::{Axis, Rotate};
 use sphere::Sphere;
 use texture::Texture;
 use translate::Translate;
@@ -473,12 +473,12 @@ pub fn cornell_box(render: &Render) {
     )));
 
     let box1 = quad_box(Point3::zero(), Point3::newi(165, 330, 165), white.clone());
-    let box1 = RotateY::new(box1, 15.0);
+    let box1 = Rotate::new(box1, Axis::Y, 15.0);
     let box1 = Translate::new(box1, Vec3::newi(265, 0, 200));
     world.push(Box::new(box1));
 
     let box2 = quad_box(Point3::zero(), Point3::fill(165.0), white.clone());
-    let box2 = RotateY::new(box2, -18.0);
+    let box2 = Rotate::new(box2, Axis::Y, -18.0);
     let box2 = Translate::new(box2, Vec3::newi(130, 0, 65));
     world.push(Box::new(box2));
     let world = Bvh::new(world);
@@ -558,7 +558,7 @@ pub fn cornell_smoke(render: &Render) {
     )));
 
     let box1 = quad_box(Point3::zero(), Point3::newi(165, 330, 165), white.clone());
-    let box1 = RotateY::new(box1, 15.0);
+    let box1 = Rotate::new(box1, Axis::Y, 15.0);
     let box1 = Translate::new(box1, Vec3::newi(265, 0, 295));
     world.push(Box::new(ConstantMedium::new(
         box1,
@@ -567,7 +567,7 @@ pub fn cornell_smoke(render: &Render) {
     )));
 
     let box2 = quad_box(Point3::zero(), Point3::fill(165.0), white.clone());
-    let box2 = RotateY::new(box2, -18.0);
+    let box2 = Rotate::new(box2, Axis::Y, -18.0);
     let box2 = Translate::new(box2, Vec3::newi(130, 0, 65));
     world.push(Box::new(ConstantMedium::new(
         box2,
@@ -715,7 +715,7 @@ pub fn final_scene(render: &Render) {
         ));
     }
 
-    let boxes2 = RotateY::new(boxes2, 15.0);
+    let boxes2 = Rotate::new(boxes2, Axis::Y, 15.0);
     let boxes2 = Translate::new(boxes2, Vec3::newi(-100, 270, 395));
     world.push(Box::new(boxes2));
 

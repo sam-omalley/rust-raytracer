@@ -2,25 +2,44 @@ use crate::aabb::Aabb;
 use crate::common;
 use crate::hittable::{HitRecord, Hittable};
 use crate::interval::Interval;
-use crate::material::Material;
 use crate::ray::Ray;
 use crate::vec3::{Point3, Vec3};
 
+// X and Z are part of the general rotation API but unused by the current
+// scenes, which only rotate about Y. Kept for completeness.
+#[derive(Clone, Copy)]
+#[allow(dead_code)]
+pub enum Axis {
+    X,
+    Y,
+    Z,
+}
 
-// TODO: Add Axis rather than hard-code Y-axis.
-pub struct RotateY<H: Hittable> {
+/// Rotate `v` by the angle whose cosine/sine are given, about `axis`.
+/// Pass a negated `sin_theta` to apply the inverse (world -> object) rotation.
+fn rotate(axis: Axis, cos_theta: f64, sin_theta: f64, v: Vec3) -> Vec3 {
+    let (c, s) = (cos_theta, sin_theta);
+    match axis {
+        Axis::X => Vec3::new(v.x(), c * v.y() - s * v.z(), s * v.y() + c * v.z()),
+        Axis::Y => Vec3::new(c * v.x() + s * v.z(), v.y(), -s * v.x() + c * v.z()),
+        Axis::Z => Vec3::new(c * v.x() - s * v.y(), s * v.x() + c * v.y(), v.z()),
+    }
+}
+
+pub struct Rotate<H: Hittable> {
     object: H,
+    axis: Axis,
     bbox: Aabb,
     sin_theta: f64,
     cos_theta: f64,
 }
 
-impl<H: Hittable> RotateY<H> {
-    pub fn new(object: H, angle: f64) -> Self {
+impl<H: Hittable> Rotate<H> {
+    pub fn new(object: H, axis: Axis, angle: f64) -> Self {
         let radians = common::degrees_to_radians(angle);
         let sin_theta = f64::sin(radians);
         let cos_theta = f64::cos(radians);
-        let bbox = object.bounding_box();
+        let bbox = object.bounding_box().unwrap_or_else(Aabb::empty);
 
         let mut min = Point3::fill(common::INFINITY);
         let mut max = Point3::fill(-common::INFINITY);
@@ -32,11 +51,7 @@ impl<H: Hittable> RotateY<H> {
                     let y = j as f64 * bbox.max().y() + (1 - j) as f64 * bbox.min().y();
                     let z = k as f64 * bbox.max().z() + (1 - k) as f64 * bbox.min().z();
 
-                    let newx = cos_theta * x + sin_theta * z;
-                    let newy = y;
-                    let newz = -sin_theta * x + cos_theta * z;
-
-                    let tester = Vec3::new(newx, newy, newz);
+                    let tester = rotate(axis, cos_theta, sin_theta, Vec3::new(x, y, z));
 
                     for c in 0..3 {
                         min[c] = f64::min(min[c], tester[c]);
@@ -50,6 +65,7 @@ impl<H: Hittable> RotateY<H> {
 
         Self {
             object,
+            axis,
             bbox,
             sin_theta,
             cos_theta,
@@ -57,43 +73,26 @@ impl<H: Hittable> RotateY<H> {
     }
 }
 
-impl<H: Hittable> Hittable for RotateY<H> {
-    fn hit(&self, r: &Ray, ray_t: Interval) -> Option<(HitRecord, &Material)> {
-        // Transform the ray from world space to object space.
-        let origin = Point3::new(
-            (self.cos_theta * r.origin().x()) - (self.sin_theta * r.origin().z()),
-            r.origin().y(),
-            (self.sin_theta * r.origin().x()) + (self.cos_theta * r.origin().z()),
-        );
-
-        let direction = Vec3::new(
-            (self.cos_theta * r.direction().x()) - (self.sin_theta * r.direction().z()),
-            r.direction().y(),
-            (self.sin_theta * r.direction().x()) + (self.cos_theta * r.direction().z()),
-        );
+impl<H: Hittable> Hittable for Rotate<H> {
+    fn hit(&self, r: &Ray, ray_t: Interval) -> Option<HitRecord<'_>> {
+        // Transform the ray from world space to object space (inverse rotation).
+        let origin = rotate(self.axis, self.cos_theta, -self.sin_theta, r.origin());
+        let direction = rotate(self.axis, self.cos_theta, -self.sin_theta, r.direction());
 
         let rotated_r = Ray::new_at(origin, direction, r.time());
 
         // Determine whether an intersection exists in object space (and if so, where).
-        if let Some((mut rec, mat)) = self.object.hit(&rotated_r, ray_t) {
-            rec.p = Point3::new(
-                (self.cos_theta * rec.p.x()) + (self.sin_theta * rec.p.z()),
-                rec.p.y(),
-                (-self.sin_theta * rec.p.x()) + (self.cos_theta * rec.p.z()),
-            );
+        if let Some(mut rec) = self.object.hit(&rotated_r, ray_t) {
+            // Transform the hit back from object space to world space (forward rotation).
+            rec.p = rotate(self.axis, self.cos_theta, self.sin_theta, rec.p);
+            rec.normal = rotate(self.axis, self.cos_theta, self.sin_theta, rec.normal);
 
-            rec.normal = Vec3::new(
-                (self.cos_theta * rec.normal.x()) + (self.sin_theta * rec.normal.z()),
-                rec.normal.y(),
-                (-self.sin_theta * rec.normal.x()) + (self.cos_theta * rec.normal.z()),
-            );
-
-            return Some((rec, mat));
+            return Some(rec);
         }
         None
     }
 
-    fn bounding_box(&self) -> Aabb {
-        self.bbox
+    fn bounding_box(&self) -> Option<Aabb> {
+        Some(self.bbox)
     }
 }

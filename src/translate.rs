@@ -1,7 +1,6 @@
 use crate::aabb::Aabb;
 use crate::hittable::{HitRecord, Hittable};
 use crate::interval::Interval;
-use crate::material::Material;
 use crate::ray::Ray;
 use crate::vec3::Vec3;
 
@@ -13,7 +12,10 @@ pub struct Translate<H: Hittable> {
 
 impl<H: Hittable> Translate<H> {
     pub fn new(object: H, offset: Vec3) -> Self {
-        let bbox = object.bounding_box() + offset;
+        let bbox = object
+            .bounding_box()
+            .map(|b| b + offset)
+            .unwrap_or_else(Aabb::empty);
         Self {
             object,
             offset,
@@ -23,21 +25,21 @@ impl<H: Hittable> Translate<H> {
 }
 
 impl<H: Hittable> Hittable for Translate<H> {
-    fn hit(&self, r: &Ray, ray_t: Interval) -> Option<(HitRecord, &Material)> {
+    fn hit(&self, r: &Ray, ray_t: Interval) -> Option<HitRecord<'_>> {
         // Move the ray backwards by the offset
         let offset_r = Ray::new_at(r.origin() - self.offset, r.direction(), r.time());
 
         // Determine whether an intersection exists along the offset ray (amd of so, where)
         match self.object.hit(&offset_r, ray_t) {
             None => None,
-            Some((mut rec, mat)) => {
+            Some(mut rec) => {
                 rec.p += self.offset;
-                Some((rec, mat))
+                Some(rec)
             }
         }
     }
 
-    fn bounding_box(&self) ->Aabb {
-        self.bbox
+    fn bounding_box(&self) -> Option<Aabb> {
+        Some(self.bbox)
     }
 }
