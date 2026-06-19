@@ -32,14 +32,15 @@ impl<H: Hittable> RotateY<H> {
                     let y = j as f64 * bbox.max().y() + (1 - j) as f64 * bbox.min().y();
                     let z = k as f64 * bbox.max().z() + (1 - k) as f64 * bbox.min().z();
 
-                    let x = cos_theta * x + sin_theta * z;
-                    let z = -sin_theta * x + cos_theta * z;
+                    let newx = cos_theta * x + sin_theta * z;
+                    let newy = y;
+                    let newz = -sin_theta * x + cos_theta * z;
 
-                    let tester = Vec3::new(x, y, z);
+                    let tester = Vec3::new(newx, newy, newz);
 
                     for c in 0..3 {
                         min[c] = f64::min(min[c], tester[c]);
-                        max[c] = f64::max(min[c], tester[c]);
+                        max[c] = f64::max(max[c], tester[c]);
                     }
                 }
             }
@@ -83,7 +84,7 @@ impl<H: Hittable> Hittable for RotateY<H> {
 
             rec.normal = Vec3::new(
                 (self.cos_theta * rec.normal.x()) + (self.sin_theta * rec.normal.z()),
-                rec.p.y(),
+                rec.normal.y(),
                 (-self.sin_theta * rec.normal.x()) + (self.cos_theta * rec.normal.z()),
             );
 
