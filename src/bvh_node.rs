@@ -40,10 +40,11 @@ impl Bvh {
             max - min
         }
 
-        let axis_ranges: Vec<(usize, f64)> =
-            (0..3).map(|a| (a, axis_range(&hittable, a))).collect();
-
-        let axis = axis_ranges[0].0;
+        let axis = (0..3)
+            .map(|a| (a, axis_range(&hittable, a)))
+            .max_by(|a, b| a.1.total_cmp(&b.1))
+            .unwrap()
+            .0;
 
         hittable.sort_unstable_by(box_compare(axis));
         let len = hittable.len();
