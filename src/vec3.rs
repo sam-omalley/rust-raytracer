@@ -206,7 +206,9 @@ pub fn cross(u: Vec3, v: Vec3) -> Vec3 {
 }
 
 pub fn unit_vector(v: Vec3) -> Vec3 {
-    v / v.length()
+    let len = v.length();
+    debug_assert!(len > 0.0, "unit_vector called on a zero-length vector");
+    v / len
 }
 
 pub fn random_in_unit_sphere() -> Vec3 {

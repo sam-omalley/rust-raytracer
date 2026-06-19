@@ -10,7 +10,10 @@ fn main() {
         panic!("{}", USAGE)
     }
 
-    let scene: i32 = args[1].parse().unwrap();
+    let scene: i32 = match args[1].parse() {
+        Ok(scene) => scene,
+        Err(_) => panic!("Invalid scene number '{}'.\n{}", args[1], USAGE),
+    };
     let quality: String = args[2].clone();
 
     let render = match quality.to_lowercase().as_str() {

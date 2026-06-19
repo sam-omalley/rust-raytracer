@@ -5,12 +5,14 @@ use crate::vec3::{Point3, Vec3};
 use image::{Pixel, RgbImage};
 
 pub fn load_image(name: &str) -> RgbImage {
-    let img = image::open(format!(
-        "{}/{}",
-        env!("CARGO_MANIFEST_DIR").to_owned() + "/data/",
+    let path = format!(
+        "{}/{}/{}",
+        env!("CARGO_MANIFEST_DIR"),
+        "data",
         name
-    ))
-    .unwrap();
+    );
+    let img = image::open(&path)
+        .unwrap_or_else(|e| panic!("Failed to load image '{}': {}", path, e));
     img.to_rgb8()
 }
 
