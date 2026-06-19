@@ -7,7 +7,8 @@ use image::{Pixel, RgbImage};
 pub fn load_image(name: &str) -> RgbImage {
     let img = image::open(format!(
         "{}/{}",
-        "/Users/sam/Projects/rust/ray-tracing/data/", name
+        env!("CARGO_MANIFEST_DIR").to_owned() + "/data/",
+        name
     ))
     .unwrap();
     img.to_rgb8()
