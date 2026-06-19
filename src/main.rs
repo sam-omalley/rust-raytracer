@@ -1,7 +1,7 @@
 use ray_tracing::*;
 use std::env;
 
-const USAGE: &str = "Usage: ./ray-tracer <scene num> <LOW|MED|HIGH quality>";
+const USAGE: &str = "Usage: ./ray-tracer <scene num> <LOWLOW|LOW|MED|HIGH|FINAL quality>";
 
 fn main() {
     let args: Vec<String> = env::args().collect();

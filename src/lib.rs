@@ -87,13 +87,13 @@ pub fn bouncing_spheres(render: &Render) {
     for a in -11..11 {
         for b in -11..11 {
             let choose_mat = common::random_double();
-            let center = Point3::new(
+            let centre = Point3::new(
                 a as f64 + 0.9 * common::random_double(),
                 0.2,
                 b as f64 + 0.9 * common::random_double(),
             );
 
-            if (center - Point3::new(4.0, 0.2, 0.0)).length() > 0.9 {
+            if (centre - Point3::new(4.0, 0.2, 0.0)).length() > 0.9 {
                 if choose_mat < 0.8 {
                     // Diffuse
                     let albedo = Colour::random() * Colour::random();
@@ -101,34 +101,34 @@ pub fn bouncing_spheres(render: &Render) {
                         texture: albedo.into(),
                     };
                     let centre2 =
-                        center + Point3::new(0.0, common::random_double_range(0.0, 0.5), 0.0);
+                        centre + Point3::new(0.0, common::random_double_range(0.0, 0.5), 0.0);
                     world.push(Box::new(Sphere::moving(
-                        (center, centre2),
+                        (centre, centre2),
                         0.2,
                         sphere_material,
                     )));
                 } else if choose_mat < 0.95 {
-                    // Meta
+                    // Metal
                     let albedo = Colour::random_range(0.5, 1.0);
                     let fuzziness = common::random_double_range(0.0, 0.5);
                     let sphere_material = Material::Metal { albedo, fuzziness };
-                    world.push(Box::new(Sphere::stationary(center, 0.2, sphere_material)));
+                    world.push(Box::new(Sphere::stationary(centre, 0.2, sphere_material)));
                 } else {
                     // Glass
-                    let sphere_material = Material::Dialectric { refraction: 1.5 };
-                    world.push(Box::new(Sphere::stationary(center, 0.2, sphere_material)));
+                    let sphere_material = Material::Dielectric { refraction: 1.5 };
+                    world.push(Box::new(Sphere::stationary(centre, 0.2, sphere_material)));
                 }
             }
         }
     }
 
-    let material = Material::Dialectric { refraction: 1.5 };
+    let material = Material::Dielectric { refraction: 1.5 };
     world.push(Box::new(Sphere::stationary(
         Point3::new(0.0, 1.0, 0.0),
         1.0,
         material,
     )));
-    let material = Material::Dialectric {
+    let material = Material::Dielectric {
         refraction: 1.0 / 1.5,
     };
     world.push(Box::new(Sphere::stationary(
@@ -630,13 +630,13 @@ pub fn final_scene(render: &Render) {
         light.clone(),
     )));
 
-    let center1 = Point3::newi(400, 400, 200);
-    let center2 = center1 + Vec3::newi(30, 0, 0);
+    let centre1 = Point3::newi(400, 400, 200);
+    let centre2 = centre1 + Vec3::newi(30, 0, 0);
     let sphere_material = Material::Lambertian {
         texture: Colour::new(0.7, 0.3, 0.1).into(),
     };
     world.push(Box::new(Sphere::moving(
-        (center1, center2),
+        (centre1, centre2),
         50.0,
         sphere_material,
     )));
@@ -644,7 +644,7 @@ pub fn final_scene(render: &Render) {
     world.push(Box::new(Sphere::stationary(
         Point3::newi(260, 150, 45),
         50.0,
-        Material::Dialectric { refraction: 1.5 },
+        Material::Dielectric { refraction: 1.5 },
     )));
     world.push(Box::new(Sphere::stationary(
         Point3::newi(0, 150, 145),
@@ -658,13 +658,13 @@ pub fn final_scene(render: &Render) {
     world.push(Box::new(Sphere::stationary(
         Point3::newi(360, 150, 145),
         70.0,
-        Material::Dialectric { refraction: 1.5 },
+        Material::Dielectric { refraction: 1.5 },
     )));
     world.push(Box::new(ConstantMedium::new(
         Sphere::stationary(
             Point3::newi(360, 150, 145),
             70.0,
-            Material::Dialectric { refraction: 1.5 },
+            Material::Dielectric { refraction: 1.5 },
         ),
         0.2,
         Colour::new(0.2, 0.4, 0.9).into(),
@@ -672,7 +672,7 @@ pub fn final_scene(render: &Render) {
     let boundary = Sphere::stationary(
         Point3::zero(),
         5000.0,
-        Material::Dialectric { refraction: 1.5 },
+        Material::Dielectric { refraction: 1.5 },
     );
     world.push(Box::new(ConstantMedium::new(
         boundary,
